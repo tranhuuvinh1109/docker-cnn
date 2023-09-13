@@ -17,7 +17,8 @@ RUN pip install -r requirements.txt
 RUN pip install dlib
 
 COPY . .
+# Khi em dung docker compose de handle port thi khong can dung EXPOSE
+# EXPOSE 8000
 
-EXPOSE 8000
-
-CMD ["python","manage.py","runserver"]
+# Chay cmd run o dock-compose
+ENTRYPOINT []
