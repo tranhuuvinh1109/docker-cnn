@@ -26,7 +26,6 @@ SECRET_KEY = 'django-insecure-jt_u_l5dalcg$*v5f#9ktv$1=pocnf@s=zsiv5jeb2@3a6))#3
 DEBUG = True
 
 ALLOWED_HOSTS = []
-AUTH_USER_MODEL = 'accounts.User'
 
 
 # Application definition
@@ -38,28 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
+    'cnn',
+
     'rest_framework',
     'rest_framework.authtoken',
-    'corsheaders',
-    'accounts',
 ]
-
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
-    ),
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ),
-}
-
 
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -70,8 +56,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'cnn.urls'
-
-CORS_ORIGIN_ALLOW_ALL = True
 
 TEMPLATES = [
     {
@@ -143,11 +127,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Cấu hình SMTP server của bạn
-EMAIL_PORT = 587  # Port của SMTP server
-EMAIL_USE_TLS = True  # Sử dụng TLS cho kết nối bảo mật
-EMAIL_HOST_USER = 'khoakun27@gmail.com'  # Email của bạn
-EMAIL_HOST_PASSWORD = 'sfcdthbpfnutceyz'  # Mật khẩu của bạn
