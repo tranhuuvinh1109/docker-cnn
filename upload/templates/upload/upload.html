@@ -6,72 +6,34 @@
     <title>File Upload</title>
 </head>
 <body>
-    {% comment %} <div>
-        <form id="uploadForm" method="post" enctype="multipart/form-data">
-            <label for="file">Choose File</label>
-            <input type="file" id="file" />
-            <button type="button" onclick="uploadFile()">
-                Click me to upload
-            </button>
-        </form>
-        <div id="file-info"></div>
-    </div> {% endcomment %}
     <div>
-        <form id="uploadForm" method="post" enctype="multipart/form-data" onsubmit="uploadFile()">
+        <form id="uploadForm" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <label for="file">Choose File</label>
             <input type="file" id="file" />
-            <button>
+            <button type="button" onclick="uploadFile(event)">
                 Click me to upload
             </button>
         </form>
         <div id="file-info"></div>
     </div>
 
-    {% comment %} <script>
-        async function uploadFile() {
-            const fileInput = document.getElementById('file');
-            const file = fileInput.files[0];
-            
-            const formData = new FormData();
-            formData.append('file', file);
-        
-            try {
-                const csrf_token = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-                const response = await fetch('/upload/', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrf_token
-                    },
-                    body: formData
-                });
-        
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('File uploaded:', data.status);
-                } else {
-                    console.error('Error uploading file:', response.statusText);
-                }
-            } catch (error) {
-                console.error('Error uploading file:', error);
-            }
-        }
-    </script> {% endcomment %}
-
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
-        async function uploadFile() {
+        async function uploadFile(event) {
+            event.preventDefault()
             const fileInput = document.getElementById('file');
             const file = fileInput.files[0];
+
+            console.log(file)
     
             const formData = new FormData();
             formData.append('file', file);
     
             try {
                 // Lấy CSRF token từ trang
-                const csrf_token = $('[name=csrfmiddlewaretoken]').val();
+                const csrf_token = document.getElementsByName('csrfmiddlewaretoken')[0].value;
     
                 const response = await fetch('/upload', {
                     method: 'POST',
@@ -83,7 +45,7 @@
     
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('File uploaded:', data.status);
+                    console.log('File uploaded:', data.url);
                 } else {
                     console.error('Error uploading file:', response.statusText);
                 }
