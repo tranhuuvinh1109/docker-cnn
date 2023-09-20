@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'accounts',
     'trainModel',
-    'export'
+    'export',
     'upload'
 ]
 
