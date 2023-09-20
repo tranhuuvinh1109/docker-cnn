@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'accounts',
+    'trainModel',
+    'export'
 ]
 
 REST_FRAMEWORK = {
