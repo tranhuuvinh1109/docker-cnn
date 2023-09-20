@@ -2,4 +2,4 @@ venv/
 db.sqlite3
 datasets
 model
-__pycache__/
+cnn/__pycache__
