@@ -11,6 +11,8 @@ from tensorflow.keras.preprocessing import image
 import numpy as np
 import matplotlib.pyplot as plt
 
+from trainModel import uploadToDrive
+
 train_data_dir = 'D:/Django/CNN/docker-cnn/datasets/train'
 test_data_dir = 'D:/Django/CNN/docker-cnn/datasets/valid'
 
@@ -63,7 +65,9 @@ class TrainModel (APIView):
         )
         # Lưu mô hình đã huấn luyện
         model.save('D:/Django/CNN/docker-cnn/model/trained_new1.h5')
-        
+        print("savingg =>>>>")
+        uploadToDrive.upload_to_drive()
+        print("uplaoded =>>>>")
         # Load mô hình đã huấn luyện
         model = load_model('D:/Django/CNN/docker-cnn/model/trained_new1.h5')
         
@@ -87,6 +91,7 @@ class TrainModel (APIView):
         # In ra lớp dự đoán và điểm tự tin
         print(f"Predicted class for the image is: {predicted_class}")
         print(f"Confidence: {confidence_score:.2f}%")
+        
         
         return Response({"predicted_class": predicted_class, "confidence_score": confidence_score}, status=status.HTTP_200_OK)
 
