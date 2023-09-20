@@ -17,10 +17,13 @@ Including another URLconf
 from django.urls import path
 from django.contrib import admin
 from accounts.views import *
+from export.views import *
+
 
 urlpatterns = [    
     path('register/', RegisterAPI.as_view()),
     path('verify/', VerifyOTP.as_view()),
     path("admin/", admin.site.urls),
-    path('login/', LoginAPI.as_view())
+    path('login/', LoginAPI.as_view()),
+    path('unzip/', UploadAndUnzip.as_view())
 ]
