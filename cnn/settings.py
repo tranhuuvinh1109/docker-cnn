@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'accounts',
     'trainModel',
     'export'
+    'upload'
 ]
 
 REST_FRAMEWORK = {
