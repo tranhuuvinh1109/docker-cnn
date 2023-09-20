@@ -17,11 +17,16 @@ Including another URLconf
 from django.urls import path, include
 from django.contrib import admin
 from accounts.views import *
+from export.views import *
+from trainModel.views import *
 
 urlpatterns = [    
     path('register/', RegisterAPI.as_view()),
     path('verify/', VerifyOTP.as_view()),
     path("admin/", admin.site.urls),
     path('login/', LoginAPI.as_view()),
+    path('unzip/', UploadAndUnzip.as_view()),
+    path("trainModel/", TrainModel.as_view()),
     path("", include("upload.urls") )
+    
 ]
