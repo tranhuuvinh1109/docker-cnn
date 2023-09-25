@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+</head>
+<body>
+    <div>
+        <h1> chat</h1>
+        <form id="form">
+            <input type="text" name="message" />
+        </form>
+
+        <div id="messages"></div>
+        
+    </div>
+    
+
+    <script type="text/javascript">
+        let url = `ws://${window.location.host}/ws/socket-server/`;
+    
+        const ChatSocket = new WebSocket(url);
+    
+        ChatSocket.onmessage = function(event) {
+            let data = JSON.parse(event.data);
+            console.log("Data:", data);
+
+            if(data.type === 'chat'){
+                let messages = document.getElementById("messages")
+
+                messages.insertAdjacentHTML('beforeend', `<div>
+                                        <p>${data.message}</p>
+                                    </div>`);
+
+            }
+        };
+    
+        document.getElementById('form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            let message = event.target.message.value;
+            ChatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            event.target.reset();
+        });
+    </script>
+    
+</body>
+</html>

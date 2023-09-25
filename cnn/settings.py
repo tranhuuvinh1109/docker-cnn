@@ -32,21 +32,30 @@ AUTH_USER_MODEL = 'accounts.User'
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+    'chat',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
     'accounts',
-    'trainModel',
     'export',
-    'upload'
+    'upload',
+    'realtime',
 ]
+
+ASGI_APPLICATION = 'cnn.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (

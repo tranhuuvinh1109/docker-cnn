@@ -13,6 +13,7 @@ def unrar(file, destination):
     rf.extractall(destination)
 
 class UploadAndUnzip(APIView):
+
     def post(self, request):
         if request.method == "POST" and request.FILES.get("data"):
             zip_file = request.FILES["data"]
