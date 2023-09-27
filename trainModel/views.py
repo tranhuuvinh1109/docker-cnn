@@ -1,8 +1,10 @@
+import asyncio
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 import tensorflow as tf
+from .consumers import ProgressConsumer
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
@@ -10,6 +12,8 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import numpy as np
 import matplotlib.pyplot as plt
+from channels.generic.websocket import WebsocketConsumer
+import json
 
 from trainModel import uploadToDrive
 
@@ -20,6 +24,28 @@ img_width, img_height = 128, 128
 batch_size = 32
 
 class TrainModel (APIView):
+    async def send_progress_to_clients(self, epoch, total_epochs):
+        progress = {
+            'type': 'training_progress',
+            'epoch': epoch,
+            'total_epochs': total_epochs,
+        }
+        await self.progress_ws.send(text_data=json.dumps(progress))
+
+    def train_model_with_progress(self, model, train_generator, epochs):
+        # ...
+
+        for epoch in range(epochs):
+            print(f"---->>>>>>>Epoch {epoch + 1}/{epochs}")
+            model.fit(
+                train_generator,
+                epochs=1,  # Train for one epoch at a time
+            )
+            
+            # Send progress to clients via WebSocket
+            if self.progress_ws:
+                asyncio.run(self.send_progress_to_clients(epoch + 1, epochs))
+
     def get(self, request):
         # Tạo data generator cho việc augmentation dữ liệu (tuỳ chọn)
         train_datagen = ImageDataGenerator(
@@ -56,13 +82,22 @@ class TrainModel (APIView):
         model.compile(optimizer='adam',
                     loss='categorical_crossentropy',
                     metrics=['accuracy'])
-
+        self.progress_ws = self.scope["user"].get("websocket", None)
         # Huấn luyện mô hình với callback tính thời gian
         epochs = 10
-        model.fit(
-            train_generator,
-            epochs=epochs,
-        )
+        # model.fit(
+        #     train_generator,
+        #     epochs=epochs,
+        # )
+        # self.progress_ws = self.scope["user"].get("websocket", None)
+        for epoch in range(epochs):
+            print(f"---->>>>>>>Epoch {epoch + 1}/{epochs}")
+            self.train_model_with_progress(model, train_generator, epochs)
+            model.fit(
+                train_generator,
+                epochs=1,  # Train for one epoch at a time
+            )
+        
         # Lưu mô hình đã huấn luyện
         model.save('D:/Django/CNN/docker-cnn/model/trained_new1.h5')
         print("savingg =>>>>")
