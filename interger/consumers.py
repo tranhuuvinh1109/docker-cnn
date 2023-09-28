@@ -67,7 +67,7 @@ class WSConsumer(WebsocketConsumer):
         model.compile(optimizer='adam',
                     loss='categorical_crossentropy',
                     metrics=['accuracy'])
-        epochs = 3
+        epochs = 5
         print(f"---->>>>>>>Start")
         self.send(json.dumps({'message': 'Hello World!', 'id': 'START'}))
         
@@ -86,5 +86,5 @@ class WSConsumer(WebsocketConsumer):
         self.send(json.dumps({'message': 'Hello World!', 'id': 'DONE'}))
         print("savingg =>>>>")
         
-        os.remove(data_folders)
+        # os.remove(data_folders)
         # print("removing datasets folders")
