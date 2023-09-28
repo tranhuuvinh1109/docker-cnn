@@ -7,9 +7,30 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
 # from tensorflow.keras.preprocessing import image
+
+
+import os
+
+# Đường dẫn đến thư mục gốc chứa dữ liệu
+base_data_dir = 'D:/Django/CNN/docker-cnn/datasets'
+
+# Liệt kê tất cả các thư mục con trong thư mục "datasets"
+data_folders = [folder for folder in os.listdir(base_data_dir) if os.path.isdir(os.path.join(base_data_dir, folder))]
+
+# Chọn một thư mục con (ví dụ: chọn thư mục đầu tiên)
+if data_folders:
+    data_folder_name = data_folders[0]
+else:
+    data_folder_name = 'default_folder'  # Thư mục mặc định nếu không có thư mục con
+
+# Tạo đường dẫn linh hoạt
+train_data_dir = os.path.join(base_data_dir, data_folder_name, 'train')
+test_data_dir = os.path.join(base_data_dir, data_folder_name, 'valid')
+
+# print('folder is: ', data_folders)
+
 progress = 0
-train_data_dir = 'D:/Django/CNN/docker-cnn/datasets/train'
-test_data_dir = 'D:/Django/CNN/docker-cnn/datasets/valid'
+
 
 img_width, img_height = 128, 128
 batch_size = 32
@@ -64,3 +85,6 @@ class WSConsumer(WebsocketConsumer):
         upload_folder('D:/Django/CNN/docker-cnn/model/trained_new1.h5', 'model_trained')
         self.send(json.dumps({'message': 'Hello World!', 'id': 'DONE'}))
         print("savingg =>>>>")
+        
+        os.remove(data_folders)
+        # print("removing datasets folders")
