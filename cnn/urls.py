@@ -19,6 +19,7 @@ from django.contrib import admin
 from accounts.views import *
 from export.views import *
 from trainModel.views import *
+from response.views import *
 
 urlpatterns = [    
     path('register/', RegisterAPI.as_view()),
@@ -28,6 +29,6 @@ urlpatterns = [
     path('unzip/', UploadAndUnzip.as_view()),
     path("trainModel/", TrainModel.as_view()),
     # path("", include("upload.urls") )
-    
+    path('', include('response.urls')),
     path('', include('interger.urls'))
 ]
