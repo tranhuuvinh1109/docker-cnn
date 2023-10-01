@@ -16,9 +16,9 @@ class UploadAndUnzip(APIView):
     def post(self, request):
         if request.method == "POST" and request.FILES.get("data"):
             zip_file = request.FILES["data"]
-            
+        
         # Xác định thư mục để lưu trữ các tệp giải nén
-        destination_dir = 'D:/Django/CNN/docker-cnn/datasets'
+        destination_dir = 'D:/Django/CNN/docker-cnn/datasets/'
 
         # Tạo thư mục nếu nó không tồn tại
         os.makedirs(destination_dir, exist_ok=True)
