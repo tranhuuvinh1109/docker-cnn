@@ -30,7 +30,6 @@ def authenticate_with_google_drive(client_secrets_path):
 
 
 def success(request):
-    
     return render(request,'upload/upload_success.html')
 
 
@@ -52,7 +51,7 @@ def upload_folder(path, file_name):
 
         sendMailToDrive('tranhuudu113@gmail.com', file_link)
         print("uploaded  =>>>>>>>>>")
-        
+        return file_link
 
     except Exception as e:
         print(e)
