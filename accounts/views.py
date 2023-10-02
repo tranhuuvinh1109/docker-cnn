@@ -11,6 +11,11 @@ from .emails import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+import ssl
+
+
+# Vô hiệu hóa kiểm tra chứng chỉ SSL
+ssl._create_default_https_context = ssl._create_unverified_context
 
 # Create your views here.
 

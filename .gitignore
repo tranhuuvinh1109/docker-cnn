@@ -3,6 +3,7 @@ db.sqlite3
 datasets
 model
 accounts/__pycache__
+accounts/migrations/__pycache__
 cnn/__pycache__
 export/__pycache__
 trainModel/__pycache__
