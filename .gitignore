@@ -4,6 +4,7 @@ datasets
 model
 accounts/__pycache__
 cnn/__pycache__
+export/__pycache__
 trainModel/__pycache__
 upload/__pycache__
 UserApp/__pycache__
