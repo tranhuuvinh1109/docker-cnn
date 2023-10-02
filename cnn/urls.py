@@ -26,7 +26,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('login/', LoginAPI.as_view()),
     path('unzip/', UploadAndUnzip.as_view()),
-    path("trainModel/", TrainModel.as_view()),
-    path("", include("upload.urls") )
+    # path("trainModel/", TrainModel.as_view()),
+    # path("", include("upload.urls") )
     
+    path('', include('interger.urls'))
 ]

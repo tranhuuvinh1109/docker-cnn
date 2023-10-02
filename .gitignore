@@ -6,6 +6,9 @@ accounts/__pycache__
 accounts/migrations/__pycache__
 cnn/__pycache__
 export/__pycache__
+export/migrations/__pycache__
+interger/__pycache__
+interger/migrations/__pycache__
 trainModel/__pycache__
 upload/__pycache__
 UserApp/__pycache__

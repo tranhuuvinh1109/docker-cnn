@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1 id="app">{{text}}</h1>
+    <script>
+        console.log('rasd')
+        var socket = new WebSocket('ws://localhost:8000/ws/some_url/');
+        socket.onmessage = function(e){
+            var data = JSON.parse(e.data);
+            console.log(data);
+            document.querySelector('#app').innerText = data.id;
+        }
+        console.log('ens');
+    </script>
+</body>
+</html>
