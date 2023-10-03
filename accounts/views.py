@@ -11,28 +11,36 @@ from .emails import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+import ssl
+
+
+# Vô hiệu hóa kiểm tra chứng chỉ SSL
+ssl._create_default_https_context = ssl._create_unverified_context
 
 # Create your views here.
+
+
 class RegisterAPI(APIView):
     def post(self, request):
-            data = request.data
-            serializers = UserSerializer(data=data)
-            
-            if serializers.is_valid():
-                serializers.save()
-                send_otp_via_email(serializers.data['email'])
-                return Response({
-                    'status': 200,
-                    'message': 'User registered successfully, please check your Email to confirm',
-                    'data': serializers.data
-                })
-                
+        print("->>>>>>>>>>>>>>>>>>>>>>>", request.data)
+        data = request.data
+        serializers = UserSerializer(data=data)
+
+        if serializers.is_valid():
+            serializers.save()
+            send_otp_via_email(serializers.data['email'])
             return Response({
-                'status': 400,
-                'message': 'User registration failed, please try again',
-                'data': serializers.errors
+                'status': 200,
+                'message': 'User registered successfully, please check your Email to confirm',
+                'data': serializers.data
             })
-            
+
+        return Response({
+            'status': 400,
+            'message': 'User registration failed, please try again',
+            'data': serializers.errors
+        })
+
 
 class VerifyOTP(APIView):
     def post(self, request):
@@ -43,7 +51,7 @@ class VerifyOTP(APIView):
             if serializers.is_valid():
                 email = serializers.data['email']
                 otp = serializers.data['otp']
-                
+
                 user = User.objects.filter(email=email)
                 if not user.exists():
                     return Response({
@@ -51,18 +59,18 @@ class VerifyOTP(APIView):
                         'message': 'User registration failed, please try again',
                         'data': 'invalid email'
                     })
-                
+
                 if not user[0].otp == otp:
                     return Response({
                         'status': 400,
                         'message': 'User registration failed, please try again',
                         'data': 'wrong OTP'
                     })
-                
+
                 user = user.first()
                 user.is_verified = True
                 user.save()
-                
+
                 return Response({
                     'status': 200,
                     'message': 'Account has been verified',
@@ -70,18 +78,18 @@ class VerifyOTP(APIView):
                         'email': user.email
                     }
                 })
-            
+
             else:
                 return Response({
                     'status': 400,
                     'message': 'User registration failed, please try again',
                     'data': serializers.errors
                 })
-            
+
         except Exception as e:
             return JsonResponse(json.dumps(e))
-        
-        
+
+
 class LoginAPI(APIView):
     def post(self, request):
         """
@@ -89,13 +97,13 @@ class LoginAPI(APIView):
         """
         try:
             serializers = LoginSerializer(data=request.data)
-            
+
             if serializers.is_valid():
                 email = serializers.validated_data['email']
                 password = serializers.validated_data['password']
-                
+
                 user = User.objects.filter(email=email)
-                
+
                 if user.exists() and user.count() == 1:
                     user_data = user.first()
 
@@ -121,5 +129,3 @@ class LoginAPI(APIView):
                     })
         except serializers.ValidationError:
             print(serializers.ValidationError)
-            
-
