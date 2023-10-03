@@ -10,5 +10,7 @@ export/migrations/__pycache__
 interger/__pycache__
 interger/migrations/__pycache__
 trainModel/__pycache__
+trainModel/migrations/__pycache__
 upload/__pycache__
+upload/migrations/__pycache__
 UserApp/__pycache__
