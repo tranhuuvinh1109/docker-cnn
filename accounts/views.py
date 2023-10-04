@@ -149,33 +149,31 @@ class LoginAPI(APIView):
 
 class CreateProjectAPI(APIView):
     def post(self, request):
-        serializer = ProjectSerializer(data=request.data)
+        # Lấy dữ liệu đầu vào từ request.data
+        user_id = request.data.get('user_id')
+        progress = request.data.get('progress')
+        status_text = request.data.get('status')
+        link_drive = request.data.get('link_drive')
 
-        if serializer.is_valid():
-            # Save the project
-            project = serializer.save()
+        # Tìm người dùng dựa trên user_id
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-            # Retrieve the serialized user data
-            user_data = UserSerializer(project.user).data
+        # Tạo dự án mới với người dùng tìm được
+        project = Project.objects.create(
+            user=user, progress=progress, status=status_text, link_drive=link_drive)
 
-            # Update the serialized data with user information
-            response_data = {
-                'message': 'Project created successfully',
-                'data': {
-                    'id': project.id,
-                    'user': user_data,
-                    'progress': project.progress,
-                    'status': project.status,
-                    'link_drive': project.link_drive
-                }
-            }
-            return Response(response_data, status=status.HTTP_201_CREATED)
-        else:
-            response_data = {
-                'message': 'Project creation failed',
-                'errors': serializer.errors
-            }
-            return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
+        # Serialize dự án
+        serializer = ProjectSerializer(project)
+
+        response_data = {
+            'message': 'Project created successfully',
+            'data': serializer.data
+        }
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 class InforUser(APIView):
