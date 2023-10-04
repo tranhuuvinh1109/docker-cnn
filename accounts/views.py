@@ -294,3 +294,152 @@ class UserDataManageAPI(APIView):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+class GetUserFromProjectView(APIView):
+    def get(self, request, id):
+        # Retrieve the project based on the given ID or return a 404 if not found
+        project = get_object_or_404(Project, id=id)
+
+        # Get the user for the project
+        user = project.user
+
+        # Serialize the user data
+        user_serializer = UserSerializer(user)
+
+        # Return the serialized user data along with the user ID
+        response_data = {
+            'user_id': user.id if user else None,
+            'user_info': user_serializer.data if user else None
+        }
+
+        return Response(response_data)
+
+
+class UserInfoAPI(APIView):
+    def get(self, request):
+        # Kiểm tra người dùng đã đăng nhập hay chưa
+        if request.user.is_authenticated:
+            user_data = UserSerializer(request.user).data
+            return Response({'user': user_data}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'User is not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class UpdateUserInfoAPI(APIView):
+    def put(self, request):
+        user_id = request.data.get('id')
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UserSerializer(user, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            # Lấy thông tin người dùng sau cập nhật
+            updated_user = User.objects.get(id=user_id)
+            updated_user_data = UserSerializer(updated_user).data
+            return Response({'message': 'User information updated successfully', 'user': updated_user_data}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LogoutAPI(APIView):
+    def post(self, request):
+        try:
+            # Đăng xuất người dùng bằng cách xóa token
+            request.auth.delete()
+            return Response({'message': 'User logged out successfully'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'message': 'Logout failed', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetUserByIDAPI(APIView):
+    def get(self, request, user_id):
+        try:
+            # Lấy thông tin người dùng với user_id
+            user = get_object_or_404(User, id=user_id)
+
+            # Lấy thông tin tất cả các dự án của người dùng
+            projects = Project.objects.filter(user=user)
+            project_serializer = ProjectSerializer(projects, many=True)
+
+            # Serialize thông tin người dùng
+            user_serializer = UserSerializer(user)
+
+            # Tạo response chứa thông tin đã được serialize
+            response_data = {
+                'message': f'Thông tin người dùng với id {user_id}',
+                'data': {
+                    'user': user_serializer.data,
+                    'projects': project_serializer.data
+                }
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'message': 'Không tìm thấy người dùng với ID đã cung cấp'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'message': 'Lấy thông tin người dùng thất bại', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetUserByNameAPI(APIView):
+    def get(self, request, username):
+        try:
+            # Lấy thông tin người dùng với username
+            user = get_object_or_404(User, username=username)
+
+            # Lấy thông tin tất cả các dự án của người dùng
+            projects = Project.objects.filter(user=user)
+            project_serializer = ProjectSerializer(projects, many=True)
+
+            # Serialize thông tin người dùng
+            user_serializer = UserSerializer(user)
+
+            # Tạo response chứa thông tin đã được serialize
+            response_data = {
+                'message': f'Thông tin người dùng với tên người dùng {username}',
+                'data': {
+                    'user': user_serializer.data,
+                    'projects': project_serializer.data
+                }
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'message': 'Không tìm thấy người dùng với tên người dùng đã cung cấp'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'message': 'Lấy thông tin người dùng thất bại', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DeleteUserAPI(APIView):
+    def delete(self, request, user_id):
+        try:
+            # Lấy người dùng dựa trên user_id
+            user = get_object_or_404(User, id=user_id)
+
+            # Lấy thông tin tất cả các dự án của người dùng
+            projects = Project.objects.filter(user=user)
+            project_serializer = ProjectSerializer(projects, many=True)
+
+            # Serialize thông tin người dùng
+            user_serializer = UserSerializer(user)
+
+            # Xóa tài khoản người dùng
+            user.delete()
+
+            # Tạo response chứa thông tin đã được serialize và thông tin về xóa
+            response_data = {
+                'message': 'Xóa tài khoản người dùng thành công',
+                'deleted_user': user_serializer.data,
+                'deleted_projects': project_serializer.data
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'message': 'Không tìm thấy người dùng với ID đã cung cấp'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'message': 'Xóa tài khoản người dùng thất bại', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

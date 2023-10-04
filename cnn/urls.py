@@ -36,9 +36,18 @@ urlpatterns = [
 
     path('admin_manage/all_user/', UserDataManageAPI.as_view(),
          name='admin_manage/all_user'),
-    path("", include("upload.urls")),
-    # path("trainModel/", TrainModel.as_view()),
-    # path("", include("upload.urls") )
-    
-    path('', include('interger.urls'))
+    path('get_user_from_project/<int:id>/',
+         GetUserFromProjectView.as_view(), name='get_user_from_project'),
+    path('user_info/', UserInfoAPI.as_view(), name='user_info'),
+    path('update_user_info/', UpdateUserInfoAPI.as_view(), name='update_user_info'),
+    path('logout/', LogoutAPI.as_view(), name='logout'),
+
+    path('admin_manage/get_user_by_id/<int:user_id>/',
+         GetUserByIDAPI.as_view(), name='get_user_by_id'),
+    path('admin_manage/get_user_by_name/<str:username>/',
+         GetUserByNameAPI.as_view(), name='get_user_by_name'),
+    path('admin_manage/delete_user/<int:user_id>/',
+         DeleteUserAPI.as_view(), name='delete_user'),
+    path("", include("upload.urls"))
+
 ]

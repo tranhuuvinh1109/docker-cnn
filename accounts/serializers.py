@@ -17,6 +17,19 @@ class UserSerializer(serializers.ModelSerializer):
         )
         return user
 
+    def update(self, instance, validated_data):
+        instance.email = validated_data.get('email', instance.email)
+        instance.avatar = validated_data.get('avatar', instance.avatar)
+        instance.username = validated_data.get('username', instance.username)
+
+        # Only update password if provided
+        password = validated_data.get('password')
+        if password:
+            instance.set_password(password)
+
+        instance.save()
+        return instance
+
 
 class VerifyAccountSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
