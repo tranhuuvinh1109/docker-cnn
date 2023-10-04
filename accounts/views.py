@@ -12,12 +12,28 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 import ssl
+from django.shortcuts import get_object_or_404
 
 
 # Vô hiệu hóa kiểm tra chứng chỉ SSL
 ssl._create_default_https_context = ssl._create_unverified_context
 
 # Create your views here.
+
+
+class UserSerializerNested(serializers.Serializer):
+    id = serializers.IntegerField()
+    email = serializers.EmailField()
+    avatar = serializers.CharField()
+    username = serializers.CharField()
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    user = UserSerializerNested()
+
+    class Meta:
+        model = Project
+        fields = ['id', 'user', 'progress', 'status', 'link_drive']
 
 
 class RegisterAPI(APIView):
@@ -129,3 +145,152 @@ class LoginAPI(APIView):
                     })
         except serializers.ValidationError:
             print(serializers.ValidationError)
+
+
+class CreateProjectAPI(APIView):
+    def post(self, request):
+        # Lấy dữ liệu đầu vào từ request.data
+        user_id = request.data.get('user_id')
+        progress = request.data.get('progress')
+        status_text = request.data.get('status')
+        link_drive = request.data.get('link_drive')
+
+        # Tìm người dùng dựa trên user_id
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Tạo dự án mới với người dùng tìm được
+        project = Project.objects.create(
+            user=user, progress=progress, status=status_text, link_drive=link_drive)
+
+        # Serialize dự án
+        serializer = ProjectSerializer(project)
+
+        response_data = {
+            'message': 'Project created successfully',
+            'data': serializer.data
+        }
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
+
+class InforUser(APIView):
+    def get(self, request, user_id):
+        try:
+            # Lấy thông tin người dùng với user_id
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Lấy danh sách các project của user
+        projects = Project.objects.filter(user=user)
+
+        # Serialize danh sách các project
+        serializer = ProjectSerializer(projects, many=True)
+
+        # Serialize thông tin người dùng
+        user_data = UserSerializerNested(user).data
+
+        # Tạo response chứa thông tin đã được serialize
+        response_data = {
+            'message': f'Information for user with id {user_id}',
+            'data': {
+                'user': user_data,
+                'projects': serializer.data
+            }
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
+class UpdateProjectStatus(APIView):
+    def post(self, request, project_id):
+        try:
+            # Lấy thông tin project với project_id
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"message": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Lấy dữ liệu mới từ yêu cầu PUT
+        new_status = request.data.get('status', None)
+
+        if new_status is None:
+            return Response({"message": "Status is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Cập nhật trạng thái
+        project.status = new_status
+        project.save()
+
+        # Serialize thông tin đã cập nhật
+        serializer = ProjectSerializer(project)
+
+        response_data = {
+            'message': 'Project status updated successfully',
+            'data': serializer.data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
+class UpdateProject(APIView):
+    def put(self, request):
+        # Lấy dữ liệu từ yêu cầu PUT
+        project_data = request.data
+
+        try:
+            # Lấy thông tin project với project_id
+            project_id = project_data.get('id')
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"message": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Cập nhật thông tin project
+        project.status = project_data.get('status', project.status)
+        project.link_drive = project_data.get('linkDrive', project.link_drive)
+        project.save()
+
+        # Serialize thông tin đã cập nhật
+        serializer = ProjectSerializer(project)
+
+        response_data = {
+            'message': 'Project updated successfully',
+            'data': serializer.data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
+class UserDataManageAPI(APIView):
+    def get(self, request):
+        # Ottieni tutti gli utenti
+        users = User.objects.all()
+
+        # Creare una lista per memorizzare i dati dell'utente e i relativi progetti
+        data_list = []
+
+        for user in users:
+            # Serializza le informazioni sull'utente
+            user_serializer = UserSerializer(user)
+
+            # Ottieni i progetti associati all'utente corrente
+            projects = Project.objects.filter(user=user)
+            project_serializer = ProjectSerializer(projects, many=True)
+
+            # Crea il dato dell'utente e i relativi progetti
+            user_data = {
+                "user": user_serializer.data,
+                "projects": project_serializer.data
+            }
+
+            # Aggiungi il dato dell'utente alla lista
+            data_list.append(user_data)
+
+        # Creare la risposta JSON
+        response_data = {
+            "message": "Get data user manage project successful",
+            "data": data_list
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)

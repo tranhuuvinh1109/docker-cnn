@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import *
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -31,3 +31,12 @@ class LoginSerializer(serializers.Serializer):
         model = User
         fields = ('email', 'password')
         extra_kwargs = {'password': {'write_only': True}}
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+
+    # user = UserSerializer()  # Use the UserSerializer to serialize the user field
+
+    class Meta:
+        model = Project
+        fields = ['id', 'user', 'progress', 'status', 'link_drive']

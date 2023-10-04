@@ -20,14 +20,30 @@ from accounts.views import *
 from export.views import *
 from trainModel.views import *
 
-urlpatterns = [    
+urlpatterns = [
     path('register/', RegisterAPI.as_view()),
     path('verify/', VerifyOTP.as_view()),
     path("admin/", admin.site.urls),
     path('login/', LoginAPI.as_view()),
     path('unzip/', UploadAndUnzip.as_view()),
+<<<<<<< HEAD
+    path("trainModel/", TrainModel.as_view()),
+
+    path('create-project/', CreateProjectAPI.as_view(), name='create-project'),
+    path('user_manage/<int:user_id>/', InforUser.as_view(), name='infor-user'),
+    path('update_project_status/<int:project_id>/',
+         UpdateProjectStatus.as_view(), name='update_project_status'),
+    path('update_project/', UpdateProject.as_view(), name='update_project'),
+
+    path('admin_manage/all_user/', UserDataManageAPI.as_view(),
+         name='admin_manage/all_user'),
+    path("", include("upload.urls"))
+
+]
+=======
     # path("trainModel/", TrainModel.as_view()),
     # path("", include("upload.urls") )
     
     path('', include('interger.urls'))
 ]
+>>>>>>> fd572135c88dd1034d6425d858abd4dd9caddd8a
