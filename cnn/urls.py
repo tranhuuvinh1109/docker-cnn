@@ -30,12 +30,12 @@ urlpatterns = [
     path('create-project/', CreateProjectAPI.as_view(), name='create-project'),
     path('user_manage/<int:user_id>/', InforUser.as_view(), name='infor-user'),
     path('update_project_status/<int:project_id>/',
-         UpdateProjectStatus.as_view(), name='update_project_status'),
+        UpdateProjectStatus.as_view(), name='update_project_status'),
     path('update_project/', UpdateProject.as_view(), name='update_project'),
-
     path('admin_manage/all_user/', UserDataManageAPI.as_view(),
-         name='admin_manage/all_user'),
+        name='admin_manage/all_user'),
+    
+    path("trainModel/", TrainModel.as_view()),
     path("", include("upload.urls")),
     
-    path('', include('interger.urls'))
 ]

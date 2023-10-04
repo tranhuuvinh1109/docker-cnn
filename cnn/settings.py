@@ -32,7 +32,6 @@ AUTH_USER_MODEL = 'accounts.User'
 # Application definition
 
 INSTALLED_APPS = [
-    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,8 +46,6 @@ INSTALLED_APPS = [
     'trainModel',
     'export',
     'upload',
-    
-    'interger'
 ]
 
 REST_FRAMEWORK = {
@@ -97,8 +94,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'cnn.wsgi.application'
-ASGI_APPLICATION = 'cnn.asgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
