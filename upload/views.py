@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
+from .sendMail import *
 import tempfile
 
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,62 +30,28 @@ def authenticate_with_google_drive(client_secrets_path):
 
 
 def success(request):
-    
     return render(request,'upload/upload_success.html')
 
 
-def upload_folder(request):
-    if request.method == 'POST':
-        print("444444444")
+def upload_folder(path, file_name):
+    try:
+        gauth = authenticate_with_google_drive(json_filepath)
+        drive = GoogleDrive(gauth)
 
-        # Confirm Google Drive API
-        file_to_upload = request.FILES.get('file')
-        if not file_to_upload:
-            return JsonResponse({'error': 'No file submitted.'}, status=400)
+        file_drive = drive.CreateFile({'title': file_name})
+        file_drive.SetContentFile(path)
+        file_drive.Upload()
+        file_drive.InsertPermission({
+            'type': 'anyone',
+            'value': 'anyone',
+            'role': 'reader'
+        })
+        file_link = file_drive['alternateLink']
+        print("file_link  =>>>>>>>>>", file_link)
 
-        if not file_to_upload.name.endswith('.zip'):
-            return JsonResponse({'status': 'Only zip files are allowed.'}, status=400)
+        sendMailToDrive('tranhuudu113@gmail.com', file_link)
+        print("uploaded  =>>>>>>>>>")
+        return file_link
 
-        print("33333333333")
-
-        try:
-            gauth = authenticate_with_google_drive(json_filepath)
-            drive = GoogleDrive(gauth)
-
-            # Create a temporary zip file to upload to Google Drive
-            with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as temp_zip_file:
-                temp_zip_file.write(file_to_upload.read())
-
-                # Create a new file on Google Drive and set the content from the uploaded zip file
-                file_drive = drive.CreateFile({'title': file_to_upload.name})
-                file_drive.SetContentFile(temp_zip_file.name)
-                file_drive.Upload()
-                file_drive.InsertPermission({
-                    'type': 'anyone',
-                    'value': 'anyone',
-                    'role': 'reader'
-                })
-                print("12222222222222222")
-
-                file_link = file_drive['alternateLink']
-                print("file_link  =>>>>>>>>>",file_link)
-
-                return JsonResponse({
-                    'success': 'upload success',
-                    'url': file_link,
-                    }, status=200)
-                
-
-        except Exception as e:
-            print(e)
-            # Handle exceptions appropriately, log the error, and provide a meaningful error message to the user
-            return JsonResponse({'error': str(e)}, status=500)
-
-        finally:
-            print()
-
-            # Ensure the temporary zip file is removed
-            # if os.path.exists(temp_zip_file.name):
-            #     os.unlink(temp_zip_file.name)
-
-    return render(request, 'upload/upload.html')
+    except Exception as e:
+        print(e)

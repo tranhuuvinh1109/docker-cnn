@@ -32,6 +32,7 @@ AUTH_USER_MODEL = 'accounts.User'
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,7 +46,9 @@ INSTALLED_APPS = [
     'accounts',
     'trainModel',
     'export',
-    'upload'
+    'upload',
+    
+    'interger'
 ]
 
 REST_FRAMEWORK = {
@@ -78,7 +81,9 @@ CORS_ORIGIN_ALLOW_ALL = True
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            BASE_DIR.joinpath('templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -92,6 +97,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'cnn.wsgi.application'
+ASGI_APPLICATION = 'cnn.asgi.application'
 
 
 # Database
