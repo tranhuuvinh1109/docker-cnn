@@ -26,7 +26,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('login/', LoginAPI.as_view()),
     path('unzip/', UploadAndUnzip.as_view()),
-<<<<<<< HEAD
     path("trainModel/", TrainModel.as_view()),
 
     path('create-project/', CreateProjectAPI.as_view(), name='create-project'),
@@ -37,13 +36,9 @@ urlpatterns = [
 
     path('admin_manage/all_user/', UserDataManageAPI.as_view(),
          name='admin_manage/all_user'),
-    path("", include("upload.urls"))
-
-]
-=======
+    path("", include("upload.urls")),
     # path("trainModel/", TrainModel.as_view()),
     # path("", include("upload.urls") )
     
     path('', include('interger.urls'))
 ]
->>>>>>> fd572135c88dd1034d6425d858abd4dd9caddd8a
