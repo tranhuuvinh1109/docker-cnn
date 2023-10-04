@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "docker-cnn",
+  "private_key_id": "49de60ec7738d996711e48fff60755493aa45e33",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCX+xE5RAerSeLy\ngFXoXZ2zjJGA6oKgiQAnyy1tBykWzjkJcxtghxbw9Bv9TI1KMjQqsDyxnngyDhG4\no5BGUPIYgwHK0ORXOEaqEcfe0CyChGIML/c+xBPntkT6IOHMpAPeVKHWKYp/2e3k\nvVmurucgeVeWR4itjmthThHqJL7M4PKderMgOSPrBlxighI1tbvThxaTIMuXt0gx\n3Lc+VwZBKIlVx/rJx1qpIUFNmTM9o3Tj14nQMGzd9mo5bX1gFmO+9WFIVKcOYF9c\nnEdHfRVCex4xHcNh3vz3FiG7n7J3To3HoXEid4oyQxBBWzLVfO41+MAd+sw8H3xp\nqYSBbakPAgMBAAECggEAR6wgzsNM5JQHIXqxSNBhTyvi8ItniAKj3qBcL1cZowYk\n8tZkWkzK3l4YlwdTeGKdpGYRcWg84cotxEfqgaapzTJ3FWkWziUdehXBjsvYucJp\npLq4HFMG2hbkh5sbMVFF+8MowSE9Dhc9r8o2MYGNQQzIZ/gbNlH8RNq26xdiHabb\ns13qURMktNzUiedIkR5Zw2ogNCD51+aHXiG2lxir2h7HfxMRdMoYNdjT2u/abn5U\n4kdw5agqNJ+iM23NzXXw9AM5dT6IdKW1BiaI7WD025sCOf3M1ZSLLctddyWg/DnK\nTXVMfF47MoWXCiUS/jqzLWBIGuDXL2GQ3A7K7YmVBQKBgQDOzIfilBKUmtNURl1R\nYcvf++0HveYViSTz3/E1arK/HR0GWdtG14F1wdt2erlvcjhNzJz19dMiBqhf50Ot\nUY565kTxjyJmDGLJrQcQRwqtoIl1of0/mA8KHm0Fbxme6kCW3bbq5GqA26oFFuv9\nT9tDEb+UsUOH3YoFR3PbV1jcVQKBgQC8I7uB2J67aYQj3U9R72bHz8RWeIyAmWJU\nvsiK5OOU3dMIYS8w0ILKhsqXu1C79+ilYaY4+pbPm4xSbsGhep9ll/n3HC7U1XWl\nZEbtTuWHZ+XB0GjdUQ8UcZcScjX4TQyVzA4NA7QOKCtBZaYjD4rrfvoT65I6mQf1\nvj2BRT7T0wKBgHasZvp+sN74rne5XYn7Tkz+PHrp3iTTrBILnFdkIKmN4n8nh69y\nsodKNVAbg1jSOj9jQVvgs0Xefjdy9qJ6oAIlLMFWu43GY9aKZfhQXG9hJiEMUdFx\nyIetCDFLHW/VzDUHjRXk+L1z0XDUQ579eb1WbRO+WhuY5cC7zV+9E3B1AoGAcZed\ncbNpezwlBUZsysqhosiGAbN9GXQCk6oxCPNTmSEpdmi/BlkObttdXKlDAIqY06mW\no9Zg0e5Xlbm7fRS9Qqi0yocgm25aPsbBsCwvl0aayR9dASsc0LoYfZGplkZm79ap\nMSBoSRflrfGCkq6isLcUpIxZ2Llmve/j0LYPTfMCgYEAm5lVolwgPM+BvGqlGeFE\nzZtlnarfJCTMj2cv5LO+uBsq5cD5tubeqf21skpF/L/qlgAULU+NbW8Q0xVkRRRU\n+GStC5dbIP1Lha85PnWCu4UkRcnKkUPaY2mGM3/KpV5nuIGaLqUlsdmoWigZRay0\n1IojRBwPnEdgvZpcBaYDd1Y=\n-----END PRIVATE KEY-----\n",
+  "client_email": "updrive@docker-cnn.iam.gserviceaccount.com",
+  "client_id": "105129796567259069306",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/updrive%40docker-cnn.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
