@@ -5,6 +5,8 @@ from django.http import JsonResponse
 import json
 from rest_framework.authtoken.models import Token
 
+from rest_framework.generics import RetrieveAPIView
+
 from .serializers import *
 from .emails import *
 
@@ -123,3 +125,14 @@ class LoginAPI(APIView):
             print(serializers.ValidationError)
             
 
+class GetUserAPIView(RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def retrieve(self):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "khong ton tai."}, status=status.HTTP_404_NOT_FOUND)
