@@ -1,3 +1,4 @@
+import pyrebase
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -10,36 +11,71 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import numpy as np
 import matplotlib.pyplot as plt
+from time import sleep
+import os
+import threading
+import multiprocessing
+from queue import Queue
+import random
+from upload.views import upload_folder
+from .uploadToFirebase import Firebase
+import shutil
 
-train_data_dir = 'D:/Django/CNN/docker-cnn/datasets/bikeCar/train'
-test_data_dir = 'D:/Django/CNN/docker-cnn/datasets/bikeCar/valid'
+
+# Đường dẫn đến thư mục gốc chứa dữ liệu
+base_data_dir = 'D:/Django/CNN/docker-cnn/datasets'
+data_folders = [folder for folder in os.listdir(
+    base_data_dir) if os.path.isdir(os.path.join(base_data_dir, folder))]
 
 img_width, img_height = 128, 128
 batch_size = 32
 
-class TrainModel (APIView):
-    def get(self, request):
-        print("dcccmdslkfaslfjlskdfajld")
-        # Tạo data generator cho việc augmentation dữ liệu (tuỳ chọn)
-        train_datagen = ImageDataGenerator(
-            rescale=1.0 / 255.0,  # Rescale giá trị pixel về khoảng [0, 1]
-            rotation_range=20,    # Xoay ảnh ngẫu nhiên
-            width_shift_range=0.2,  # Dịch ảnh ngang ngẫu nhiên
-            height_shift_range=0.2, # Dịch ảnh dọc ngẫu nhiên
-            shear_range=0.2,       # Biến dạng ảnh
-            zoom_range=0.2,        # Phóng to/Thu nhỏ ngẫu nhiên
-            horizontal_flip=True,  # Lật ảnh ngang ngẫu nhiên
-            fill_mode='nearest'    # Điền giá trị pixel bị thiếu bằng giá trị gần nhất
-        )
+# Hàng đợi để quản lý việc đào tạo các thư mục
+training_queue = Queue()
+
+# config = {
+#     "apiKey": "AIzaSyDXPvGl3y_IWGpU7GvixTL9uEuF0WAyNCk",
+#     "authDomain": "realtime-cnn.firebaseapp.com",
+#     "databaseURL": "https://realtime-cnn-default-rtdb.asia-southeast1.firebasedatabase.app",
+#     "projectId": "realtime-cnn",
+#     "storageBucket": "realtime-cnn.appspot.com",
+#     "messagingSenderId": "856972582342",
+#     "appId": "1:856972582342:web:d4f6747a958fe848b7e6c7"
+# }
+
+# firebase = pyrebase.initialize_app(config)
+# auth = firebase.auth()
+# database = firebase.database()
+
+img_width, img_height = 128, 128
+batch_size = 32
+training_queue = Queue()
+
+user_id = 'user_1'
+project_id = '7'
+
+class TrainModel:
+    def train(self, train_data_dir):
         
-        # Load và tiền xử lý dữ liệu huấn luyện dựa trên tên thư mục con
+        train_datagen = ImageDataGenerator(
+            rescale=1.0 / 255.0,
+            rotation_range=20,
+            width_shift_range=0.2,
+            height_shift_range=0.2,
+            shear_range=0.2,
+            zoom_range=0.2,
+            horizontal_flip=True,
+            fill_mode='nearest'
+        )
         train_generator = train_datagen.flow_from_directory(
             train_data_dir,
             target_size=(img_width, img_height),
             batch_size=batch_size,
-            class_mode='categorical'  # Sử dụng 'categorical' cho bài toán phân loại nhiều lớp
+            class_mode='categorical'
         )
-        # Tạo một mô hình CNN đơn giản
+        
+        print(f"Training model for folder {train_data_dir}...")  # In ra đường dẫn thư mục
+
         model = Sequential([
             Conv2D(32, (3, 3), activation='relu', input_shape=(img_width, img_height, 3)),
             MaxPooling2D((2, 2)),
@@ -51,42 +87,77 @@ class TrainModel (APIView):
             Dense(128, activation='relu'),
             Dense(len(train_generator.class_indices), activation='softmax')
         ])
-        # Biên dịch mô hình
         model.compile(optimizer='adam',
-                    loss='categorical_crossentropy',
-                    metrics=['accuracy'])
+                      loss='categorical_crossentropy',
+                      metrics=['accuracy'])
+        epochs = 5
 
-        # Huấn luyện mô hình với callback tính thời gian
-        epochs = 10
-        model.fit(
-            train_generator,
-            epochs=epochs,
-        )
-        # Lưu mô hình đã huấn luyện
-        model.save('D:/Django/CNN/docker-cnn/model/trained_new1.h5')
-        
-        # Load mô hình đã huấn luyện
-        model = load_model('D:/Django/CNN/docker-cnn/model/trained_new1.h5')
-        
-        # Đường dẫn tới ảnh cần dự đoán
-        image_path = 'D:/Django/CNN/docker-cnn/datasets/Bike.jpeg'
+        for epoch in range(epochs):
+            progress = (epoch + 1) / epochs * 100
+            data_send = {
+                'status': 'training',
+                'progress': progress,
+                'linkDrive': ''
+            }
+            Firebase.updateProject(user_id, project_id, data_send)
+            model.fit(train_generator, epochs=1)
 
-        # Đọc và tiền xử lý ảnh
-        img = image.load_img(image_path, target_size=(img_width, img_height))
-        img_array = image.img_to_array(img)
-        img_array = np.expand_dims(img_array, axis=0)
-        img_array /= 255.0
-        # Dự đoán
-        predictions = model.predict(img_array)
-        # Lấy chỉ mục của lớp dự đoán và nhãn
-        predicted_class_index = np.argmax(predictions[0])
-        class_labels = list(train_generator.class_indices.keys())
-        predicted_class = class_labels[predicted_class_index]
-        # Lấy điểm tự tin của dự đoán
-        confidence_score = predictions[0][predicted_class_index] * 100
-
-        # In ra lớp dự đoán và điểm tự tin
-        print(f"Predicted class for the image is: {predicted_class}")
-        print(f"Confidence: {confidence_score:.2f}%")
+        num = random.random()
+        file_name = f'D:/Django/CNN/docker-cnn/model/{num:.6f}.h5'
+        model.save(file_name)
         
-        return Response({"predicted_class": predicted_class, "confidence_score": confidence_score}, status=status.HTTP_200_OK)
+        # upload to Drive
+        link = upload_folder(file_name, 'model_trained')
+        print(f"Saving model for folder {train_data_dir} => {link}")
+        
+        # upload to firebase
+        data_send = {
+                'status': 'push drive',
+                'progress': '100',
+                'linkDrive': link
+            }
+        Firebase.updateProject(user_id, project_id, data_send)
+
+    def train_wrapper(self):
+        while not training_queue.empty():
+            train_data_dir = training_queue.get()
+            self.train(train_data_dir)
+            training_queue.task_done()
+
+    def start_training(self):
+        threads = []
+
+        # Thêm các thư mục vào hàng đợi để đào tạo
+        for folder_name in data_folders:
+            train_data_dir = os.path.join(base_data_dir, folder_name, 'train')
+            training_queue.put(train_data_dir)
+
+        # Khởi tạo và chạy worker (tiến trình con) với các thread
+        num_workers = 1  # Số lượng worker bạn muốn sử dụng
+        for _ in range(num_workers):
+            worker = threading.Thread(target=self.train_wrapper)
+            worker.start()
+            threads.append(worker)
+
+        # Chờ tất cả các worker hoàn thành
+        for worker in threads:
+            worker.join()
+
+        print("All training completed.")
+
+
+trainer = TrainModel()
+
+class TrainModelView(APIView):
+    def get(self, request):
+        data = request.data
+        data_send = {
+            'status': 'chuan bi',
+            'progress': '0',
+            'linkDrive': ''
+        }
+        Firebase.setProject(user_id, project_id, data)
+        
+        
+        trainer.start_training()
+        return Response({'message': 'All training completed.'}, status=status.HTTP_200_OK)

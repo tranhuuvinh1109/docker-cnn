@@ -35,7 +35,6 @@ urlpatterns = [
     path('admin_manage/all_user/', UserDataManageAPI.as_view(),
         name='admin_manage/all_user'),
     
-    path("trainModel/", TrainModel.as_view()),
+    path("trainModel/", TrainModelView.as_view()),
     path("", include("upload.urls")),
-    
 ]
