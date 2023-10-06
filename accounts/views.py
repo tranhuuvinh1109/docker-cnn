@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework import status
 import ssl
 from django.shortcuts import get_object_or_404
-
+from export import views as export_views
 
 # Vô hiệu hóa kiểm tra chứng chỉ SSL
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -154,17 +154,20 @@ class CreateProjectAPI(APIView):
         progress = request.data.get('progress')
         status_text = request.data.get('status')
         link_drive = request.data.get('link_drive')
+        file = request.FILES.get("file")
 
         # Tìm người dùng dựa trên user_id
         try:
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
             return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-
+        
         # Tạo dự án mới với người dùng tìm được
         project = Project.objects.create(
             user=user, progress=progress, status=status_text, link_drive=link_drive)
-
+        
+        # unzip file
+        export_views.UploadAndUnzip.unzipFile(file, 'project_4')
         # Serialize dự án
         serializer = ProjectSerializer(project)
 
