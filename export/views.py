@@ -1,10 +1,7 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
 import os
-import unrar
-
 import rarfile
 from rarfile import RarFile
+from rest_framework.response import Response
 
 rarfile.UNRAR_TOOL = r"C:/Program Files/WinRAR/UnRAR.exe"
 
@@ -12,34 +9,35 @@ def unrar(file, destination):
     rf = rarfile.RarFile(file)
     rf.extractall(destination)
 
-class UploadAndUnzip(APIView):
-    def post(self, request):
-        if request.method == "POST" and request.FILES.get("data"):
-            zip_file = request.FILES["data"]
-        
+class UploadAndUnzip():
+    def unzipFile(rar_file, project_id):        
         # Xác định thư mục để lưu trữ các tệp giải nén
         destination_dir = 'D:/Django/CNN/docker-cnn/datasets/'
 
         # Tạo thư mục nếu nó không tồn tại
         os.makedirs(destination_dir, exist_ok=True)
 
-        # Lưu trữ tệp ZIP tải lên
-        zip_file_path = os.path.join(destination_dir, zip_file.name)
-        with open(zip_file_path, 'wb+') as destination:
-            for chunk in zip_file.chunks():
+        # Tạo thư mục project_id
+        project_dir = os.path.join(destination_dir, project_id)
+        os.makedirs(project_dir, exist_ok=True)
+
+        # Lưu trữ tệp RAR tải lên
+        rar_file_path = os.path.join(destination_dir, project_id + '.rar')
+
+        with open(rar_file_path, 'wb+') as destination:
+            for chunk in rar_file.chunks():
                 destination.write(chunk)
-                
-        # Giải nén file zip:
+        
         try:
-            unrar(zip_file_path, destination_dir)
+            unrar(rar_file_path, project_dir)
         except:
-            return Response({'message': 'ZIP file uploaded but failed to extract'})
+            return Response({'message': 'RAR file uploaded but failed to extract'})
         
-        # Xóa file rar, zip vừa tải về máy
-        if os.path.exists(zip_file_path):
-            os.remove(zip_file_path)
-            print('da duoc xoa')
+        # Xóa file rar vừa tải về máy
+        if os.path.exists(rar_file_path):
+            os.remove(rar_file_path)
+            print('Da duoc xoa')
         else:
-            print('loi xay ra')
+            print('Loi xay ra')
         
-        return Response({'message': 'ZIP file uploaded and extracted successfully'})  
+        return Response({'message': 'RAR file uploaded and extracted successfully'})

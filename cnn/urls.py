@@ -25,7 +25,7 @@ urlpatterns = [
     path('verify/', VerifyOTP.as_view()),
     path("admin/", admin.site.urls),
     path('login/', LoginAPI.as_view()),
-    path('unzip/', UploadAndUnzip.as_view()),
+    # path('unzip/', UploadAndUnzip.as_view()),
 
     path('create-project/', CreateProjectAPI.as_view(), name='create-project'),
     path('user_manage/<int:user_id>/', InforUser.as_view(), name='infor-user'),
