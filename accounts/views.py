@@ -159,13 +159,14 @@ class CreateProjectAPI(APIView):
         # Tìm người dùng dựa trên user_id
         try:
             user = User.objects.get(id=user_id)
+            print(">>>user -->:", user)
         except User.DoesNotExist:
             return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         
         # Tạo dự án mới với người dùng tìm được
         project = Project.objects.create(
             user=user, progress=progress, status=status_text, link_drive=link_drive)
-        
+        print("Project created -->0", project)
         # unzip file
         export_views.UploadAndUnzip.unzipFile(file, 'project_4')
         # Serialize dự án
@@ -175,6 +176,7 @@ class CreateProjectAPI(APIView):
             'message': 'Project created successfully',
             'data': serializer.data
         }
+        print("--> before serializing project")
 
         return Response(response_data, status=status.HTTP_201_CREATED)
 
