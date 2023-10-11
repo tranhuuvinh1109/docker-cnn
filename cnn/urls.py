@@ -26,7 +26,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('login/', LoginAPI.as_view()),
     path('unzip/', UploadAndUnzip.as_view()),
-    path("trainModel/", TrainModel.as_view()),
+    # path("trainModel/", TrainModel.as_view()),
 
     path('create-project/', CreateProjectAPI.as_view(), name='create-project'),
     path('user_manage/<int:user_id>/', InforUser.as_view(), name='infor-user'),
@@ -48,6 +48,8 @@ urlpatterns = [
          GetUserByNameAPI.as_view(), name='get_user_by_name'),
     path('admin_manage/delete_user/<int:user_id>/',
          DeleteUserAPI.as_view(), name='delete_user'),
+    path('detect/', DetectImage.as_view(), name='detect-image'),
+
     path("", include("upload.urls"))
 
 ]
