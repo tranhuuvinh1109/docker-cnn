@@ -1,9 +1,17 @@
+from tensorflow.keras.applications.resnet50 import preprocess_input
+from io import BytesIO
+import os
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+import tensorflow as tf
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import JsonResponse
 import json
+import numpy as np
 from rest_framework.authtoken.models import Token
+from PIL import Image
+
 
 from .serializers import *
 from .emails import *
@@ -12,6 +20,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 import ssl
+from .models import *
 from django.shortcuts import get_object_or_404
 
 
@@ -443,3 +452,58 @@ class DeleteUserAPI(APIView):
             return Response({'message': 'Không tìm thấy người dùng với ID đã cung cấp'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'message': 'Xóa tài khoản người dùng thất bại', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Tải mô hình và đặt là biến toàn cục
+model_path = '/Users/letiendat/Desktop/PBL6/docker-cnn/model/bike_car.h5'
+model = tf.keras.models.load_model(model_path)
+
+
+class DetectImage(APIView):
+    def post(self, request):
+        # Kiểm tra xem có file hình ảnh được gửi lên không
+        if 'image' not in request.FILES:
+            return Response({'message': 'No image uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Đọc file ảnh từ request.FILES
+        image_file = request.FILES['image']
+
+        # Đọc ảnh từ buffer
+        img = Image.open(image_file)
+        img = img.convert('RGB')  # Chuyển đổi thành ảnh màu nếu không phải
+
+        # Thực hiện nhận diện trên ảnh
+        predicted_label, confidence = self.detect_label(img)
+
+        # Chuyển đổi độ tin cậy thành phần trăm
+        confidence_percentage = confidence * 100
+
+        # Chuẩn bị phản hồi
+        response_data = {
+            'message': 'Detection successful',
+            'predicted_label': predicted_label,
+            # Hiển thị độ tin cậy dưới dạng phần trăm
+            'confidence': f'{confidence_percentage:.2f}%'
+
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    def detect_label(self, img):
+        # Tiền xử lý ảnh
+        # Thay đổi kích thước ảnh theo model của bạn
+        img = img.resize((128, 128))
+        img = np.array(img)
+        img = np.expand_dims(img, axis=0)
+        img = preprocess_input(img)
+
+        # Dự đoán
+        predictions = model.predict(img)
+        predicted_class_index = np.argmax(predictions[0])
+        class_labels = ['Bike', 'Car']  # Thay bằng danh sách nhãn của bạn
+        predicted_class = class_labels[predicted_class_index]
+
+        # Lấy confidence (độ tin cậy)
+        confidence = predictions[0][predicted_class_index]
+
+        return predicted_class, confidence
