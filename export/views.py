@@ -31,7 +31,7 @@ class UploadAndUnzip():
         try:
             unrar(rar_file_path, project_dir)
         except:
-            return Response({'message': 'RAR file uploaded but failed to extract'})
+            return 0
         
         # Xóa file rar vừa tải về máy
         if os.path.exists(rar_file_path):
@@ -39,5 +39,6 @@ class UploadAndUnzip():
             print('Da duoc xoa')
         else:
             print('Loi xay ra')
+            return 0
         
-        return Response({'message': 'RAR file uploaded and extracted successfully'})
+        return 1

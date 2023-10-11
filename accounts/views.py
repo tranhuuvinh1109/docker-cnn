@@ -14,6 +14,7 @@ from rest_framework import status
 import ssl
 from django.shortcuts import get_object_or_404
 from export import views as export_views
+from trainModel import uploadToFirebase as uploadFB
 
 # Vô hiệu hóa kiểm tra chứng chỉ SSL
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -151,10 +152,11 @@ class CreateProjectAPI(APIView):
     def post(self, request):
         # Lấy dữ liệu đầu vào từ request.data
         user_id = request.data.get('user_id')
-        progress = request.data.get('progress')
-        status_text = request.data.get('status')
-        link_drive = request.data.get('link_drive')
+        progress = 0
+        status_text = 'waiting'
+        link_drive = ''
         file = request.FILES.get("file")
+        create_time = request.data.get('create_at')
 
         # Tìm người dùng dựa trên user_id
         try:
@@ -167,19 +169,32 @@ class CreateProjectAPI(APIView):
         project = Project.objects.create(
             user=user, progress=progress, status=status_text, link_drive=link_drive)
         print("Project created -->0", project)
+    
         # unzip file
-        export_views.UploadAndUnzip.unzipFile(file, 'project_4')
-        # Serialize dự án
-        serializer = ProjectSerializer(project)
+        flagExport =  export_views.UploadAndUnzip.unzipFile(file, 'project_' + str(project.id) +  '-' + str(user_id))
+        
+        if flagExport == 1:
+            data_send = {
+                'status': 'waiting',
+                'progress': '0',
+                'linkDrive': '',
+                'createAt': create_time
+            }
+            # create in firebase project user:
+            uploadFB.Firebase.setProject('user_1', project.id, data_send)
+            
+            
+            serializer = ProjectSerializer(project)
 
-        response_data = {
-            'message': 'Project created successfully',
-            'data': serializer.data
-        }
-        print("--> before serializing project")
+            response_data = {
+                'message': 'Project created successfully',
+                'data': serializer.data
+            }
+            print("--> before serializing project")
 
-        return Response(response_data, status=status.HTTP_201_CREATED)
-
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'message': 'Error when unzip file'}, status=status.HTTP_400_BAD_REQUEST)
 
 class InforUser(APIView):
     def get(self, request, user_id):
