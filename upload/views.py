@@ -9,6 +9,8 @@ import tempfile
 
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 json_filepath = os.path.join(base_dir, 'document', 'client_secret.json')
+json_filepath1 = os.path.join(base_dir, 'document', 'docker-cnn-google.json')
+
 
 def authenticate_google_drive(request):
     # Gọi API và nhận URL xác thực từ Google Drive
@@ -22,9 +24,16 @@ def authenticate_google_drive(request):
     return JsonResponse(response_data)
 
 
-def authenticate_with_google_drive(client_secrets_path):
+# def authenticate_with_google_drive(client_secrets_path):
+#     gauth = GoogleAuth()
+#     gauth.LoadClientConfigFile(client_secrets_path)
+#     gauth.LocalWebserverAuth()
+#     return gauth
+
+def authenticate_with_google_drive():
     gauth = GoogleAuth()
-    gauth.LoadClientConfigFile(client_secrets_path)
+    gauth.auth_method = 'service'
+    gauth.LoadClientConfigFile(json_filepath1)
     gauth.LocalWebserverAuth()
     return gauth
 
@@ -35,7 +44,7 @@ def success(request):
 
 def upload_folder(path, file_name):
     try:
-        gauth = authenticate_with_google_drive(json_filepath)
+        gauth = authenticate_with_google_drive()
         drive = GoogleDrive(gauth)
 
         file_drive = drive.CreateFile({'title': file_name})
