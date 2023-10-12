@@ -19,6 +19,21 @@ from tensorflow.keras.preprocessing.image import load_img, img_to_array
 import tensorflow as tf
 import numpy as np
 from PIL import Image
+from .models import User 
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+from rest_framework.exceptions import ValidationError
+from django.contrib.auth import authenticate
+
+
+
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import User
 
 # Vô hiệu hóa kiểm tra chứng chỉ SSL
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -27,11 +42,15 @@ class UserSerializerNested(serializers.Serializer):
     email = serializers.EmailField()
     avatar = serializers.CharField()
     username = serializers.CharField()
+
 class ProjectSerializer(serializers.ModelSerializer):
     user = UserSerializerNested()
+
     class Meta:
         model = Project
         fields = ['id', 'user', 'progress', 'status', 'link_drive']
+
+
 class RegisterAPI(APIView):
     def post(self, request):
         data = request.data
@@ -50,6 +69,8 @@ class RegisterAPI(APIView):
             'message': 'User registration failed, please try again',
             'data': serializers.errors
         })
+
+
 class VerifyOTP(APIView):
     def post(self, request):
         try:
@@ -95,41 +116,44 @@ class VerifyOTP(APIView):
         except Exception as e:
             return JsonResponse(json.dumps(e))
 
+
 class LoginAPI(APIView):
     def post(self, request):
-        try:
-            serializers = LoginSerializer(data=request.data)
-            if serializers.is_valid():
-                email = serializers.validated_data['email']
-                password = serializers.validated_data['password']
+        email = request.data.get('email')
+        password = request.data.get('password')
 
-                user = User.objects.filter(email=email)
+        # Kiểm tra xem email và password đã được cung cấp
+        if not email or not password:
+            return Response({
+                'status': 400,
+                'message': 'Email and password are required.'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-                if user.exists() and user.count() == 1:
-                    user_data = user.first()
+        # Xác thực người dùng
+        user = authenticate(request, username=email, password=password)
 
-                    if user_data.check_password(password):
-                        token = Token.objects.get_or_create(user=user_data)
-                        return Response({
-                            'status': 200,
-                            'message': 'User login successful',
-                            'data': {
-                                'token': token[0].key,
-                                'user': UserSerializer(user_data).data
-                            }
-                        })
-                    else:
-                        return Response({
-                            'status': 400,
-                            'message': 'Wrong password or email, please try again',
-                        })
-                else:
-                    return Response({
-                        'status': 400,
-                        'message': 'User login failed, please try again',
-                    })
-        except serializers.ValidationError:
-            print(serializers.ValidationError)
+        if user is not None:
+            # Tạo hoặc lấy token cho người dùng
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({
+                'status': 200,
+                'message': 'User login successful',
+                'data': {
+                    'token': token.key,
+                    'user': {
+                        'id': user.id,
+                        'username': user.username,
+                        'email': user.email,
+                    }
+                }
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 400,
+                'message': 'Wrong email or password, please try again.',
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+
 class CreateProjectAPI(APIView):
     def post(self, request):
         user_id = request.data.get('user_id')
@@ -143,7 +167,7 @@ class CreateProjectAPI(APIView):
             print(">>>user -->:", user)
         except User.DoesNotExist:
             return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-        
+
         project = Project.objects.create(
             user=user, progress=progress, status=status_text, link_drive=link_drive)
         print("Project created -->0", project)
@@ -180,6 +204,20 @@ class InforUser(APIView):
         }
         return Response(response_data, status=status.HTTP_200_OK)
 
+class Me(APIView):
+    def post(self, request):
+        data = request.data
+        token_key = data.get('token')
+        if not token_key:
+            return Response({"error": "Token not provided"}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            token = Token.objects.get(key=token_key)
+        except Token.DoesNotExist:
+            return Response({"error": "Invalid token"}, status=status.HTTP_404_NOT_FOUND)
+
+        user = token.user
+        serializer = UserSerializer(user)
+        return Response({"message": "Token processed successfully", "data": { 'token': token_key, 'user': serializer.data}})
 
 class UpdateProjectStatus(APIView):
     def post(self, request, project_id):
@@ -200,6 +238,7 @@ class UpdateProjectStatus(APIView):
             'data': serializer.data
         }
         return Response(response_data, status=status.HTTP_200_OK)
+
 
 class UpdateProject(APIView):
     def put(self, request):
@@ -247,6 +286,8 @@ class UserDataManageAPI(APIView):
 
 model_path = 'D:/Django/CNN/docker-cnn/model/bike_car.h5'
 model = tf.keras.models.load_model(model_path)
+
+
 class DetectImage(APIView):
     def post(self, request):
         # Kiểm tra xem có file hình ảnh được gửi lên không
