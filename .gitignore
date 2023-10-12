@@ -14,3 +14,4 @@ trainModel/migrations/__pycache__
 upload/__pycache__
 upload/migrations/__pycache__
 UserApp/__pycache__
+db.sqlite3
