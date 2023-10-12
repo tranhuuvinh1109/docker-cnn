@@ -21,34 +21,41 @@ from upload.views import upload_folder
 from .uploadToFirebase import Firebase
 import shutil
 
+
 # Đường dẫn đến thư mục gốc chứa dữ liệu
 base_data_dir = 'D:/Django/CNN/docker-cnn/datasets'
 data_folders = [folder for folder in os.listdir(
     base_data_dir) if os.path.isdir(os.path.join(base_data_dir, folder))]
-img_width, img_height = 128, 128
-batch_size = 32
-
-training_queue = Queue()
 
 img_width, img_height = 128, 128
 batch_size = 32
+
+# Hàng đợi để quản lý việc đào tạo các thư mục
 training_queue = Queue()
 
-user_id = []
-project_id = []
-projects_name = []
-index_start = 0
+# config = {
+#     "apiKey": "AIzaSyDXPvGl3y_IWGpU7GvixTL9uEuF0WAyNCk",
+#     "authDomain": "realtime-cnn.firebaseapp.com",
+#     "databaseURL": "https://realtime-cnn-default-rtdb.asia-southeast1.firebasedatabase.app",
+#     "projectId": "realtime-cnn",
+#     "storageBucket": "realtime-cnn.appspot.com",
+#     "messagingSenderId": "856972582342",
+#     "appId": "1:856972582342:web:d4f6747a958fe848b7e6c7"
+# }
+
+# firebase = pyrebase.initialize_app(config)
+# auth = firebase.auth()
+# database = firebase.database()
+
+img_width, img_height = 128, 128
+batch_size = 32
+training_queue = Queue()
+
+user_id = 'user_1'
+project_id = '7'
+
 class TrainModel:
     def train(self, train_data_dir):
-        global user_id, project_id, index_start
-        user_id_training = 'user_' + str(user_id[index_start])
-        project_id_training = project_id[index_start]
-        data_send = {
-                'status': 'training',
-                'progress': '0',
-                'linkDrive': ''
-            }
-        Firebase.updateProject(user_id_training, project_id_training, data_send)
         
         train_datagen = ImageDataGenerator(
             rescale=1.0 / 255.0,
@@ -67,6 +74,8 @@ class TrainModel:
             class_mode='categorical'
         )
         
+        print(f"Training model for folder {train_data_dir}...")  # In ra đường dẫn thư mục
+
         model = Sequential([
             Conv2D(32, (3, 3), activation='relu', input_shape=(img_width, img_height, 3)),
             MaxPooling2D((2, 2)),
@@ -90,27 +99,24 @@ class TrainModel:
                 'progress': progress,
                 'linkDrive': ''
             }
-            Firebase.updateProject(user_id_training, project_id_training, data_send)
+            Firebase.updateProject(user_id, project_id, data_send)
             model.fit(train_generator, epochs=1)
 
-        file_name = f'D:/Django/CNN/docker-cnn/model/{projects_name[index_start]}.h5'
+        num = random.random()
+        file_name = f'D:/Django/CNN/docker-cnn/model/{num:.6f}.h5'
         model.save(file_name)
+        
         # upload to Drive
-        data_send = {
-                'status': 'push to drive',
-                'progress': '100',
-                'linkDrive': ''
-            }
-        Firebase.updateProject(user_id_training, project_id_training, data_send)
-        link = upload_folder(file_name, projects_name[index_start])
+        link = upload_folder(file_name, 'model_trained')
+        print(f"Saving model for folder {train_data_dir} => {link}")
+        
         # upload to firebase
         data_send = {
-                'status': 'done',
+                'status': 'push drive',
                 'progress': '100',
                 'linkDrive': link
             }
-        Firebase.updateProject(user_id_training, project_id_training, data_send)
-        index_start += 1
+        Firebase.updateProject(user_id, project_id, data_send)
 
     def train_wrapper(self):
         while not training_queue.empty():
@@ -123,12 +129,7 @@ class TrainModel:
 
         # Thêm các thư mục vào hàng đợi để đào tạo
         for folder_name in data_folders:
-            parts = folder_name.split('_')[1].split('-')
             train_data_dir = os.path.join(base_data_dir, folder_name, 'train')
-            global user_id, project_id,projects_name
-            project_id.append(parts[0]) 
-            user_id.append(parts[1])
-            projects_name.append(folder_name)
             training_queue.put(train_data_dir)
 
         # Khởi tạo và chạy worker (tiến trình con) với các thread
@@ -144,9 +145,19 @@ class TrainModel:
 
         print("All training completed.")
 
+
 trainer = TrainModel()
 
 class TrainModelView(APIView):
     def get(self, request):
+        data = request.data
+        data_send = {
+            'status': 'chuan bi',
+            'progress': '0',
+            'linkDrive': ''
+        }
+        Firebase.setProject(user_id, project_id, data)
+        
+        
         trainer.start_training()
         return Response({'message': 'All training completed.'}, status=status.HTTP_200_OK)
