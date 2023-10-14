@@ -20,6 +20,8 @@ import random
 from upload.views import upload_folder
 from .uploadToFirebase import Firebase
 import shutil
+from export import views
+
 
 # Đường dẫn đến thư mục gốc chứa dữ liệu
 base_data_dir = 'D:/Django/CNN/docker-cnn/datasets'
@@ -39,8 +41,20 @@ project_id = []
 projects_name = []
 index_start = 0
 class TrainModel:
+    def __init__(self):
+        self.lock = threading.Lock()
+        
     def train(self, train_data_dir):
-        global user_id, project_id, index_start
+        global user_id, project_id
+        
+        with self.lock:
+            if index_start >= len(user_id):
+                return
+            user_id_training = 'user_' + str(user_id[index_start])
+            project_id_training = project_id[index_start]
+            index_start += 1
+        
+        
         user_id_training = 'user_' + str(user_id[index_start])
         project_id_training = project_id[index_start]
         data_send = {
@@ -105,10 +119,10 @@ class TrainModel:
         link = upload_folder(file_name, projects_name[index_start])
         # upload to firebase
         data_send = {
-                'status': 'done',
-                'progress': '100',
-                'linkDrive': link
-            }
+            'status': 'training',
+            'progress': '0',
+            'linkDrive': ''
+        }
         Firebase.updateProject(user_id_training, project_id_training, data_send)
         index_start += 1
 
@@ -119,14 +133,19 @@ class TrainModel:
             training_queue.task_done()
 
     def start_training(self):
+        print('start_training')
+
+        # Chờ cho sự kiện giải nén hoàn tất
+        views.unzip_completed.wait()
+
         threads = []
 
         # Thêm các thư mục vào hàng đợi để đào tạo
         for folder_name in data_folders:
             parts = folder_name.split('_')[1].split('-')
             train_data_dir = os.path.join(base_data_dir, folder_name, 'train')
-            global user_id, project_id,projects_name
-            project_id.append(parts[0]) 
+            global user_id, project_id, projects_name
+            project_id.append(parts[0])
             user_id.append(parts[1])
             projects_name.append(folder_name)
             training_queue.put(train_data_dir)
