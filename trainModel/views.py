@@ -19,18 +19,15 @@ from upload.views import upload_folder
 from .uploadToFirebase import Firebase
 import shutil
 
+
 # Đường dẫn đến thư mục gốc chứa dữ liệu
 base_data_dir = 'D:/Django/CNN/docker-cnn/datasets'
-# data_folders = [folder for folder in os.listdir(
-#     base_data_dir) if os.path.isdir(os.path.join(base_data_dir, folder))]
-img_width, img_height = 128, 128
-batch_size = 32
 
 img_width, img_height = 128, 128
 batch_size = 32
 
-# user_id = []
-# project_id = []
+img_width, img_height = 128, 128
+batch_size = 32
 user_id = ''
 project_id = ''
 projects_name = []
@@ -65,6 +62,8 @@ class TrainModel:
             class_mode='categorical'
         )
         
+        print(f"Training model for folder {train_data_dir}...")  # In ra đường dẫn thư mục
+
         model = Sequential([
             Conv2D(32, (3, 3), activation='relu', input_shape=(img_width, img_height, 3)),
             MaxPooling2D((2, 2)),
@@ -88,11 +87,12 @@ class TrainModel:
                 'progress': progress,
                 'linkDrive': ''
             }
-            Firebase.updateProject(user_id_training, project_id_training, data_send)
+            Firebase.updateProject(user_id, project_id, data_send)
             model.fit(train_generator, epochs=1)
         save_name = 'project_'+project_id+'-'+user_id
         file_name = f'D:/Django/CNN/docker-cnn/model/{save_name}.h5'
         model.save(file_name)
+        
         # upload to Drive
         data_send = {
                 'status': 'push to drive',
@@ -109,12 +109,11 @@ class TrainModel:
         
         # upload to firebase
         data_send = {
-                'status': 'done',
+                'status': 'push drive',
                 'progress': '100',
                 'linkDrive': link
             }
-        Firebase.updateProject(user_id_training, project_id_training, data_send)
-        index_start += 1
+        Firebase.updateProject(user_id, project_id, data_send)
 
     def start_training(self, export_dir):
         parts = export_dir.split('_')[1].split('-')
@@ -126,9 +125,19 @@ class TrainModel:
 
         print("All training completed.")
 
+
 trainer = TrainModel()
 
 class TrainModelView(APIView):
     def get(self, request):
+        data = request.data
+        data_send = {
+            'status': 'chuan bi',
+            'progress': '0',
+            'linkDrive': ''
+        }
+        Firebase.setProject(user_id, project_id, data)
+        
+        
         trainer.start_training()
         return Response({'message': 'All training completed.'}, status=status.HTTP_200_OK)
