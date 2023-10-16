@@ -14,49 +14,33 @@ import matplotlib.pyplot as plt
 from time import sleep
 import os
 import threading
-import multiprocessing
-from queue import Queue
 import random
 from upload.views import upload_folder
 from .uploadToFirebase import Firebase
 import shutil
-from export import views
-
 
 # Đường dẫn đến thư mục gốc chứa dữ liệu
 base_data_dir = 'D:/Django/CNN/docker-cnn/datasets'
-data_folders = [folder for folder in os.listdir(
-    base_data_dir) if os.path.isdir(os.path.join(base_data_dir, folder))]
+# data_folders = [folder for folder in os.listdir(
+#     base_data_dir) if os.path.isdir(os.path.join(base_data_dir, folder))]
 img_width, img_height = 128, 128
 batch_size = 32
 
-training_queue = Queue()
-
 img_width, img_height = 128, 128
 batch_size = 32
-training_queue = Queue()
 
-user_id = []
-project_id = []
+# user_id = []
+# project_id = []
+user_id = ''
+project_id = ''
 projects_name = []
 index_start = 0
+
 class TrainModel:
-    def __init__(self):
-        self.lock = threading.Lock()
-        
     def train(self, train_data_dir):
-        global user_id, project_id
-        
-        with self.lock:
-            if index_start >= len(user_id):
-                return
-            user_id_training = 'user_' + str(user_id[index_start])
-            project_id_training = project_id[index_start]
-            index_start += 1
-        
-        
-        user_id_training = 'user_' + str(user_id[index_start])
-        project_id_training = project_id[index_start]
+        global user_id, project_id, index_start
+        user_id_training = 'user_' + user_id
+        project_id_training = project_id
         data_send = {
                 'status': 'training',
                 'progress': '0',
@@ -95,7 +79,7 @@ class TrainModel:
         model.compile(optimizer='adam',
                       loss='categorical_crossentropy',
                       metrics=['accuracy'])
-        epochs = 5
+        epochs = 3
 
         for epoch in range(epochs):
             progress = (epoch + 1) / epochs * 100
@@ -106,8 +90,8 @@ class TrainModel:
             }
             Firebase.updateProject(user_id_training, project_id_training, data_send)
             model.fit(train_generator, epochs=1)
-
-        file_name = f'D:/Django/CNN/docker-cnn/model/{projects_name[index_start]}.h5'
+        save_name = 'project_'+project_id+'-'+user_id
+        file_name = f'D:/Django/CNN/docker-cnn/model/{save_name}.h5'
         model.save(file_name)
         # upload to Drive
         data_send = {
@@ -116,50 +100,29 @@ class TrainModel:
                 'linkDrive': ''
             }
         Firebase.updateProject(user_id_training, project_id_training, data_send)
-        link = upload_folder(file_name, projects_name[index_start])
+        link = upload_folder(file_name, save_name)
+        
+        folder_container_train = base_data_dir + '/' + save_name
+        # remove folder_container_train
+        shutil.rmtree(folder_container_train)
+        print('remove folder_container_train successfully')
+        
         # upload to firebase
         data_send = {
-            'status': 'training',
-            'progress': '0',
-            'linkDrive': ''
-        }
+                'status': 'done',
+                'progress': '100',
+                'linkDrive': link
+            }
         Firebase.updateProject(user_id_training, project_id_training, data_send)
         index_start += 1
 
-    def train_wrapper(self):
-        while not training_queue.empty():
-            train_data_dir = training_queue.get()
-            self.train(train_data_dir)
-            training_queue.task_done()
-
-    def start_training(self):
-        print('start_training')
-
-        # Chờ cho sự kiện giải nén hoàn tất
-        views.unzip_completed.wait()
-
-        threads = []
-
-        # Thêm các thư mục vào hàng đợi để đào tạo
-        for folder_name in data_folders:
-            parts = folder_name.split('_')[1].split('-')
-            train_data_dir = os.path.join(base_data_dir, folder_name, 'train')
-            global user_id, project_id, projects_name
-            project_id.append(parts[0])
-            user_id.append(parts[1])
-            projects_name.append(folder_name)
-            training_queue.put(train_data_dir)
-
-        # Khởi tạo và chạy worker (tiến trình con) với các thread
-        num_workers = 1  # Số lượng worker bạn muốn sử dụng
-        for _ in range(num_workers):
-            worker = threading.Thread(target=self.train_wrapper)
-            worker.start()
-            threads.append(worker)
-
-        # Chờ tất cả các worker hoàn thành
-        for worker in threads:
-            worker.join()
+    def start_training(self, export_dir):
+        parts = export_dir.split('_')[1].split('-')
+        train_data_dir = os.path.join(base_data_dir, export_dir, 'train')
+        global user_id, project_id, projects_name
+        project_id = parts[0]
+        user_id = parts[1]
+        self.train(train_data_dir)
 
         print("All training completed.")
 

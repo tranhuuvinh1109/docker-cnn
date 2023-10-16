@@ -4,13 +4,18 @@ from rarfile import RarFile
 from rest_framework.response import Response
 from queue import Queue
 import threading
+from trainModel import views as TrainModelViews
 
 rarfile.UNRAR_TOOL = r"C:/Program Files/WinRAR/UnRAR.exe"
 # Xác định thư mục để lưu trữ các tệp giải nén
 destination_dir = 'D:/Django/CNN/docker-cnn/datasets/'
+temp_queue = []
+
 def unrar(file, destination):
     rf = rarfile.RarFile(file)
     rf.extractall(destination)
+trainer = TrainModelViews.TrainModel()  # Tạo một đối tượng TrainModel
+
 
 class UnzipThread(threading.Thread):
     def run(self):
@@ -21,13 +26,19 @@ class UnzipThread(threading.Thread):
                 # Đảm bảo chỉ một luồng giải nén tại một thời điểm
                 with unzip_lock:
                     unrar(rar_file, destination_dir+project_id)
-                    
+                    # base_data_dir
+                    base_data_dir = destination_dir 
+                    print('export path => .....', base_data_dir + project_id)
+                    os.remove(rar_file)
+                    if temp_queue:
+                        temp_queue.pop(0)
+                    export_dir=project_id
+                    trainer.start_training(export_dir=export_dir)
+                    for temp_item in temp_queue:
+                        temp_rar_file, temp_project_id = temp_item
+                        unrar(temp_rar_file, destination_dir + temp_project_id)
                     
                 unzip_queue.task_done()
-                
-                # if task done then delete folder .rar
-                os.remove(rar_file)
-                print(f"Unzipped project {project_id}")
                 
             except Exception as e:
                 print(f'Failed to extract RAR file for project {project_id}: {str(e)}')
