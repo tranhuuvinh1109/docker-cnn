@@ -16,6 +16,9 @@ from django.shortcuts import get_object_or_404
 from export import views as export_views
 from trainModel import uploadToFirebase as uploadFB
 
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
 # Vô hiệu hóa kiểm tra chứng chỉ SSL
 ssl._create_default_https_context = ssl._create_unverified_context
 

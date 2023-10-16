@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from queue import Queue
 import threading
 from trainModel import views as TrainModelViews
+import scipy
 
 rarfile.UNRAR_TOOL = r"C:/Program Files/WinRAR/UnRAR.exe"
 # Xác định thư mục để lưu trữ các tệp giải nén

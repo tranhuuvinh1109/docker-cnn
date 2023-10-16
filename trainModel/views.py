@@ -18,6 +18,7 @@ import random
 from upload.views import upload_folder
 from .uploadToFirebase import Firebase
 import shutil
+import scipy
 
 # Đường dẫn đến thư mục gốc chứa dữ liệu
 base_data_dir = 'D:/Django/CNN/docker-cnn/datasets'

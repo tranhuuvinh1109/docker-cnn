@@ -36,5 +36,6 @@ urlpatterns = [
         name='admin_manage/all_user'),
     
     path("trainModel/", TrainModelView.as_view()),
+    # path('detect/', DetectImage.as_view(), name='detect-image'),
     path("", include("upload.urls")),
 ]

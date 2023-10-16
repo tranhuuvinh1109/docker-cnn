@@ -18,6 +18,9 @@ def authenticate_with_google_drive(client_secrets_path):
     return gauth
 
 
+
+
+
 def upload_to_drive():
     model_file_path = os.path.join('D:/Django/CNN/docker-cnn/model/trained_new1.h5')
     try:
