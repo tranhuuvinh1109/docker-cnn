@@ -27,7 +27,7 @@ urlpatterns = [
     path('login/', LoginAPI.as_view()),
     # path('unzip/', UploadAndUnzip.as_view()),
 
-    path('create-project/', CreateProjectAPI.as_view(), name='create-project'),
+    path('create_project/', CreateProjectAPI.as_view(), name='create-project'),
     path('user_manage/<int:user_id>/', InforUser.as_view(), name='infor-user'),
     path('update_project_status/<int:project_id>/',
         UpdateProjectStatus.as_view(), name='update_project_status'),
@@ -36,7 +36,6 @@ urlpatterns = [
         name='admin_manage/all_user'),
     
     path("trainModel/", TrainModelView.as_view()),
-    path('detect/', DetectImage.as_view(), name='detect-image'),
-    path("me/", Me.as_view(), name="me"),
+    # path('detect/', DetectImage.as_view(), name='detect-image'),
     path("", include("upload.urls")),
 ]
