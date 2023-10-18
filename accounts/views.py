@@ -175,7 +175,7 @@ class CreateProjectAPI(APIView):
         
         # Tạo dự án mới với người dùng tìm được
         project = Project.objects.create(
-            user=user, progress=progress, status=status_text, link_drive=link_drive)
+            user=user, progress=progress, name=name ,status=status_text, link_drive=link_drive)
         print("Project created -->0", project)
         # data_send = {
         #         'status': 'waiting',

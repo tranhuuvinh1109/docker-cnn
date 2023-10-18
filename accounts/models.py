@@ -51,12 +51,13 @@ class User(AbstractBaseUser):
 
 class Project(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
     progress = models.IntegerField()
     status = models.CharField(max_length=255)
     link_drive = models.CharField(max_length=255)
 
     def __str__(self):
-        return f"Project {self.id} - {self.status}"
+        return f"Project {self.id} - {self.name} - {self.status}"
 
 
 class ForgetPassword(models.Model):
