@@ -19,9 +19,11 @@ from upload.views import upload_folder
 from .uploadToFirebase import Firebase
 import shutil
 import scipy
+from decouple import config
 
 # Đường dẫn đến thư mục gốc chứa dữ liệu
-base_data_dir = 'D:/Django/CNN/docker-cnn/datasets'
+# base_data_dir = 'D:/Django/CNN/docker-cnn/datasets'
+base_data_dir = config('DATASETS')
 # data_folders = [folder for folder in os.listdir(
 #     base_data_dir) if os.path.isdir(os.path.join(base_data_dir, folder))]
 img_width, img_height = 128, 128

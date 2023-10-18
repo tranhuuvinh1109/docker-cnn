@@ -161,10 +161,14 @@ class CreateProjectAPI(APIView):
         file = request.FILES.get("file")
         create_time = request.data.get('create_at')
 
+        if file:
+            print(">>>file name -->:", file.name)
+        else:
+            print("0000>>>file name -->:")
         # Tìm người dùng dựa trên user_id
         try:
             user = User.objects.get(id=user_id)
-            print(">>>user -->:", user)
+            print(">>>user -->:", user, file)
         except User.DoesNotExist:
             return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         
@@ -172,32 +176,41 @@ class CreateProjectAPI(APIView):
         project = Project.objects.create(
             user=user, progress=progress, status=status_text, link_drive=link_drive)
         print("Project created -->0", project)
-    
-        # unzip file
-        flagExport =  export_views.UploadAndUnzip.unzipFile(file, 'project_' + str(project.id) +  '-' + str(user_id))
-        
-        if flagExport == 1:
-            data_send = {
+        data_send = {
                 'status': 'waiting',
                 'progress': '0',
                 'linkDrive': '',
                 'createAt': create_time
             }
             # create in firebase project user:
-            uploadFB.Firebase.setProject('user_1', project.id, data_send)
+        uploadFB.Firebase.setProject('user_1', project.id, data_send)
+    
+        # # unzip file
+        # flagExport =  export_views.UploadAndUnzip.unzipFile(file, 'project_' + str(project.id) +  '-' + str(user_id))
+        
+        # if flagExport == 1:
+        #     data_send = {
+        #         'status': 'waiting',
+        #         'progress': '0',
+        #         'linkDrive': '',
+        #         'createAt': create_time
+        #     }
+        #     # create in firebase project user:
+        #     uploadFB.Firebase.setProject('user_1', project.id, data_send)
             
             
-            serializer = ProjectSerializer(project)
+        #     serializer = ProjectSerializer(project)
 
-            response_data = {
-                'message': 'Project created successfully',
-                'data': serializer.data
-            }
-            print("--> before serializing project")
+        #     response_data = {
+        #         'message': 'Project created successfully',
+        #         'data': serializer.data
+        #     }
+        #     print("--> before serializing project")
 
-            return Response(response_data, status=status.HTTP_201_CREATED)
-        else:
-            return Response({'message': 'Error when unzip file'}, status=status.HTTP_400_BAD_REQUEST)
+        #     return Response(response_data, status=status.HTTP_201_CREATED)
+        # else:
+        #     return Response({'message': 'Error when unzip file'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Error when unzip file'}, status=status.HTTP_201_CREATED)
 
 class InforUser(APIView):
     def get(self, request, user_id):
@@ -284,6 +297,24 @@ class UpdateProject(APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
+class Me(APIView):
+    def post(self, request):
+        # Lấy dữ liệu từ yêu cầu PUT
+        user_id = request.data.get('user_id')
+
+        try:
+            user = User.objects.get(id=user_id)
+        except Project.DoesNotExist:
+            return Response({"message": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        response_data = {
+            'message': 'Get Information successfully',
+            'data': {
+                'user': UserSerializer(user).data
+            }
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
 class UserDataManageAPI(APIView):
     def get(self, request):

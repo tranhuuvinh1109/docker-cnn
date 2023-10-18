@@ -32,6 +32,7 @@ urlpatterns = [
     path('update_project_status/<int:project_id>/',
         UpdateProjectStatus.as_view(), name='update_project_status'),
     path('update_project/', UpdateProject.as_view(), name='update_project'),
+    path('me/', Me.as_view(), name='me'),
     path('admin_manage/all_user/', UserDataManageAPI.as_view(),
         name='admin_manage/all_user'),
     
