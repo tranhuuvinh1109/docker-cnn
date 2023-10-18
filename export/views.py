@@ -6,10 +6,12 @@ from queue import Queue
 import threading
 from trainModel import views as TrainModelViews
 import scipy
+from decouple import config
 
 rarfile.UNRAR_TOOL = r"C:/Program Files/WinRAR/UnRAR.exe"
 # Xác định thư mục để lưu trữ các tệp giải nén
-destination_dir = 'D:/Django/CNN/docker-cnn/datasets/'
+# destination_dir = 'D:/Django/CNN/docker-cnn/datasets/'
+destination_dir = config('DATASETS')
 temp_queue = []
 
 def unrar(file, destination):
