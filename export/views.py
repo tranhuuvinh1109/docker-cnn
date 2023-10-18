@@ -8,6 +8,8 @@ from trainModel import views as TrainModelViews
 import scipy
 from decouple import config
 
+from trainModel.uploadToFirebase import Firebase
+
 rarfile.UNRAR_TOOL = r"C:/Program Files/WinRAR/UnRAR.exe"
 # Xác định thư mục để lưu trữ các tệp giải nén
 # destination_dir = 'D:/Django/CNN/docker-cnn/datasets/'
@@ -25,6 +27,15 @@ class UnzipThread(threading.Thread):
         while True:
             rar_file, project_id = unzip_queue.get()
             print(f"Unzipping project {project_id}...")
+            parts = project_id.split('_')[1].split('-')
+            user_id  = parts[1]
+            prj_id = parts[0]
+            data_send = {
+                'status': 'extracting',
+                'progress': '0',
+                'linkDrive': ''
+            }
+            Firebase.updateProject('user_'+user_id, prj_id, data_send)
             try:
                 # Đảm bảo chỉ một luồng giải nén tại một thời điểm
                 with unzip_lock:
