@@ -159,6 +159,7 @@ class CreateProjectAPI(APIView):
         status_text = 'waiting'
         link_drive = ''
         file = request.FILES.get("file")
+        name = request.data.get("name")
         create_time = request.data.get('create_at')
 
         if file:
@@ -176,41 +177,38 @@ class CreateProjectAPI(APIView):
         project = Project.objects.create(
             user=user, progress=progress, status=status_text, link_drive=link_drive)
         print("Project created -->0", project)
-        data_send = {
-                'status': 'waiting',
-                'progress': '0',
-                'linkDrive': '',
-                'createAt': create_time
-            }
-            # create in firebase project user:
-        uploadFB.Firebase.setProject('user_1', project.id, data_send)
-    
-        # # unzip file
-        # flagExport =  export_views.UploadAndUnzip.unzipFile(file, 'project_' + str(project.id) +  '-' + str(user_id))
-        
-        # if flagExport == 1:
-        #     data_send = {
+        # data_send = {
         #         'status': 'waiting',
         #         'progress': '0',
         #         'linkDrive': '',
-        #         'createAt': create_time
+        #         'createAt': create_time,
+        #         'name':name
         #     }
         #     # create in firebase project user:
-        #     uploadFB.Firebase.setProject('user_1', project.id, data_send)
-            
-            
-        #     serializer = ProjectSerializer(project)
-
-        #     response_data = {
-        #         'message': 'Project created successfully',
-        #         'data': serializer.data
-        #     }
-        #     print("--> before serializing project")
-
-        #     return Response(response_data, status=status.HTTP_201_CREATED)
-        # else:
-        #     return Response({'message': 'Error when unzip file'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'message': 'Error when unzip file'}, status=status.HTTP_201_CREATED)
+        # uploadFB.Firebase.setProject('user_1', project.id, data_send)
+    
+        # unzip file
+        flagExport =  export_views.UploadAndUnzip.unzipFile(file, 'project_' + str(project.id) +  '-' + str(user_id))
+        
+        if flagExport == 1:
+            data_send = {
+                'status': 'waiting',
+                'progress': '0',
+                'linkDrive': '',
+                'createAt': create_time,
+                'name':name,
+            }
+            # create in firebase project user:
+            uploadFB.Firebase.setProject('user_'+user_id, project.id, data_send)
+            serializer = ProjectSerializer(project)
+            response_data = {
+                'message': 'Project created successfully',
+                'data': serializer.data
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'message': 'Error when unzip file'}, status=status.HTTP_400_BAD_REQUEST)
+        # return Response({'message': 'Error when unzip file'}, status=status.HTTP_201_CREATED)
 
 class InforUser(APIView):
     def get(self, request, user_id):
