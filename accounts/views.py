@@ -37,7 +37,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ['id', 'user', 'progress', 'status', 'link_drive']
+        fields = ['id', 'user', 'progress', 'status', 'link_drive' , 'name']
 
 
 class RegisterAPI(APIView):
@@ -188,28 +188,27 @@ class CreateProjectAPI(APIView):
         # uploadFB.Firebase.setProject('user_1', project.id, data_send)
     
         # unzip file
-        flagExport =  export_views.UploadAndUnzip.unzipFile(file, 'project_' + str(project.id) +  '-' + str(user_id))
+        # flagExport =  export_views.UploadAndUnzip.unzipFile(file, 'project_' + str(project.id) +  '-' + str(user_id))
         
-        if flagExport == 1:
-            data_send = {
-                'status': 'waiting',
-                'progress': '0',
-                'linkDrive': '',
-                'createAt': create_time,
-                'name':name,
-            }
-            # create in firebase project user:
-            uploadFB.Firebase.setProject('user_'+user_id, project.id, data_send)
-            serializer = ProjectSerializer(project)
-            response_data = {
-                'message': 'Project created successfully',
-                'data': serializer.data
-            }
-            return Response(response_data, status=status.HTTP_201_CREATED)
-        else:
-            return Response({'message': 'Error when unzip file'}, status=status.HTTP_400_BAD_REQUEST)
-        # return Response({'message': 'Error when unzip file'}, status=status.HTTP_201_CREATED)
-
+        # if flagExport == 1:
+        #     data_send = {
+        #         'status': 'waiting',
+        #         'progress': '0',
+        #         'linkDrive': '',
+        #         'createAt': create_time,
+        #         'name':name,
+        #     }
+        #     # create in firebase project user:
+        #     uploadFB.Firebase.setProject('user_'+user_id, project.id, data_send)
+        #     serializer = ProjectSerializer(project)
+        #     response_data = {
+        #         'message': 'Project created successfully',
+        #         'data': serializer.data
+        #     }
+        #     return Response(response_data, status=status.HTTP_201_CREATED)
+        # else:
+        #     return Response({'message': 'Error when unzip file'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Error when unzip file', 'data' : ProjectSerializer(project).data}, status=status.HTTP_201_CREATED)
 class InforUser(APIView):
     def get(self, request, user_id):
         try:
@@ -343,6 +342,27 @@ class UserDataManageAPI(APIView):
         response_data = {
             "message": "Get data user manage project successful",
             "data": data_list
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+
+
+class ProjectSearchAPI(APIView):
+    def get(self, request):
+        # Lấy tham số tìm kiếm từ URL, ví dụ: /search?q=ten-du-an
+        search_query = request.GET.get('q')
+
+        if not search_query:
+            return Response({'message': 'Vui lòng cung cấp tham số tìm kiếm "q".'}, status=status.HTTP_BAD_REQUEST)
+
+        # Tìm kiếm dự án theo tên
+        projects = Project.objects.filter(name__icontains=search_query)
+        serializer = ProjectSerializer(projects, many=True)
+
+        response_data = {
+            'message': f'Kết quả tìm kiếm cho "{search_query}"',
+            'data': serializer.data
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
