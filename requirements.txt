@@ -9,3 +9,4 @@ tensorflow
 rarfile
 matplotlib
 pydrive
+python-decouple
