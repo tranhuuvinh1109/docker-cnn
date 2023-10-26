@@ -16,6 +16,12 @@ from django.shortcuts import get_object_or_404
 from export import views as export_views
 from trainModel import uploadToFirebase as uploadFB
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from googleapiclient.discovery import build
+from google.oauth2 import service_account
+from googleapiclient.http import MediaFileUpload
+
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
@@ -172,10 +178,10 @@ class CreateProjectAPI(APIView):
             print(">>>user -->:", user, file)
         except User.DoesNotExist:
             return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-        
+
         # Tạo dự án mới với người dùng tìm được
         project = Project.objects.create(
-            user=user, progress=progress, name=name ,status=status_text, link_drive=link_drive)
+            user=user, progress=progress, name=name, status=status_text, link_drive=link_drive)
         print("Project created -->0", project)
         # data_send = {
         #         'status': 'waiting',
@@ -186,20 +192,22 @@ class CreateProjectAPI(APIView):
         #     }
         #     # create in firebase project user:
         # uploadFB.Firebase.setProject('user_1', project.id, data_send)
-    
+
         # unzip file
-        flagExport =  export_views.UploadAndUnzip.unzipFile(file, 'project_' + str(project.id) +  '-' + str(user_id))
-        
+        flagExport = export_views.UploadAndUnzip.unzipFile(
+            file, 'project_' + str(project.id) + '-' + str(user_id))
+
         if flagExport == 1:
             data_send = {
                 'status': 'waiting',
                 'progress': '0',
                 'linkDrive': '',
                 'createAt': create_time,
-                'name':name,
+                'name': name,
             }
             # create in firebase project user:
-            uploadFB.Firebase.setProject('user_'+user_id, project.id, data_send)
+            uploadFB.Firebase.setProject(
+                'user_'+user_id, project.id, data_send)
             serializer = ProjectSerializer(project)
             response_data = {
                 'message': 'Project created successfully',
@@ -209,6 +217,7 @@ class CreateProjectAPI(APIView):
         else:
             return Response({'message': 'Error when unzip file'}, status=status.HTTP_400_BAD_REQUEST)
         # return Response({'message': 'Error when unzip file'}, status=status.HTTP_201_CREATED)
+
 
 class InforUser(APIView):
     def get(self, request, user_id):
@@ -295,6 +304,7 @@ class UpdateProject(APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
+
 class Me(APIView):
     def post(self, request):
         # Lấy dữ liệu từ yêu cầu PUT
@@ -313,6 +323,7 @@ class Me(APIView):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
+
 
 class UserDataManageAPI(APIView):
     def get(self, request):
@@ -346,3 +357,49 @@ class UserDataManageAPI(APIView):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+class UPLOAD_AUTO(APIView):
+    def get(self, request):
+        # Đường dẫn đến tệp JSON chứa thông tin Service Account Key
+        SERVICE_ACCOUNT_FILE = '/Users/letiendat/Documents/Semes-Six/PBL6/docker-cnn/client_secrets.json'
+
+        # Thiết lập phạm vi (scope)
+        SCOPES = ['https://www.googleapis.com/auth/drive.file']
+
+        # Tạo credentials từ Service Account File
+        credentials = service_account.Credentials.from_service_account_file(
+            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+
+        # Khởi tạo dịch vụ Google Drive
+        drive_service = build('drive', 'v3', credentials=credentials)
+
+        # Đường dẫn tệp bạn muốn tải lên
+        file_path = '/Users/letiendat/Documents/Semes-Six/PBL6/docker-cnn/requirements.txt'
+
+        # Specify the folder ID where you want to upload the file
+        folder_id = '1aAIkfZS-anf5E6M8uj5nUka5B8Iy4yQn'
+
+        # Thực hiện tải lên tệp
+        file_metadata = {
+            'name': 'b.txt',
+            'parents': [folder_id]
+        }
+
+        media = MediaFileUpload(file_path, mimetype='application/octet-stream')
+
+        file = drive_service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
+
+        # Trả về thông báo thành công hoặc lỗi và URL của tệp
+        if 'id' in file:
+            file_id = file['id']
+            file_url = "https://drive.google.com/file/d/" + file_id + "/view"
+            # https://drive.google.com/file/d/15aZezP89eENIpUh5pQ-HjivtWXOj0uY_/view
+
+            return Response({"message": "Upload success", "file_url": file_url})
+        else:
+            return Response({"error": "Upload failed"}, status=500)
