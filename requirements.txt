@@ -10,3 +10,5 @@ rarfile
 matplotlib
 pydrive
 python-decouple
+djangorestframework-simplejwt
+scipy
