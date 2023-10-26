@@ -375,14 +375,14 @@ class UPLOAD_AUTO(APIView):
         drive_service = build('drive', 'v3', credentials=credentials)
 
         # Đường dẫn tệp bạn muốn tải lên
-        file_path = '/Users/letiendat/Documents/Semes-Six/PBL6/docker-cnn/bike_car.h5'
+        file_path = '/Users/letiendat/Documents/Semes-Six/PBL6/docker-cnn/requirements.txt'
 
         # Specify the folder ID where you want to upload the file
         folder_id = '1aAIkfZS-anf5E6M8uj5nUka5B8Iy4yQn'
 
         # Thực hiện tải lên tệp
         file_metadata = {
-            'name': 'bike_car.h5',
+            'name': 'b.txt',
             'parents': [folder_id]
         }
 
@@ -394,8 +394,12 @@ class UPLOAD_AUTO(APIView):
             fields='id'
         ).execute()
 
-        # Trả về thông báo thành công hoặc lỗi
+        # Trả về thông báo thành công hoặc lỗi và URL của tệp
         if 'id' in file:
-            return Response({"message": "Upload success"})
+            file_id = file['id']
+            file_url = "https://drive.google.com/file/d/" + file_id + "/view"
+            # https://drive.google.com/file/d/15aZezP89eENIpUh5pQ-HjivtWXOj0uY_/view
+
+            return Response({"message": "Upload success", "file_url": file_url})
         else:
             return Response({"error": "Upload failed"}, status=500)
