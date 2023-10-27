@@ -94,7 +94,7 @@ class TrainModel:
             Firebase.updateProject(user_id_training, project_id_training, data_send)
             model.fit(train_generator, epochs=1)
         save_name = 'project_'+project_id+'-'+user_id
-        file_name = f'D:/Django/CNN/docker-cnn/model/{save_name}.h5'
+        file_name = f'F:/WORKS/MATERIALS/4th_year/LapTrinhMang/docker-cnn/model/{save_name}.h5'
         model.save(file_name)
         # upload to Drive
         data_send = {

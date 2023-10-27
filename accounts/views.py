@@ -403,3 +403,83 @@ class UPLOAD_AUTO(APIView):
             return Response({"message": "Upload success", "file_url": file_url})
         else:
             return Response({"error": "Upload failed"}, status=500)
+
+
+
+class Train_Model(APIView):
+    def get(self, request):
+        file_path = ''
+        file_name = 'model_new.h5'
+        url = Upload_auto_drive(file_path,file_name )
+        print('getttt')
+        return Response({'message': 'ok', "url":url})
+    def post(self, request):
+        # file, user_id, project_id
+        print("---->>POST<>>>>>>")
+        user_id = request.data.get('user_id')
+        project_id = request.data.get('project_id')
+        file = request.FILES.get("file")
+        name = request.data.get("name")
+        create_time = request.data.get('create_at')
+
+        if file:
+            print(">>>file name -->:", file.name)
+        else:
+            print("0000>>>file name -->:")
+
+        # unzip file
+        flagExport = export_views.UploadAndUnzip.unzipFile(
+            file, 'project_' + str(project_id) + '-' + str(user_id))
+
+        if flagExport == 1:
+            data_send = {
+                'status': 'waiting',
+                'progress': '0',
+                'linkDrive': '',
+                'createAt': create_time,
+                'name': name,
+            }
+            # create in firebase project user:
+            uploadFB.Firebase.updateProject(
+                'user_'+user_id, project_id, data_send)
+            
+            return Response({"data": {
+                "user_id": user_id,
+                "project_id": project_id
+            }}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'message': 'Error when unzip file'}, status=status.HTTP_400_BAD_REQUEST)
+
+def Upload_auto_drive(file_path, file_name):
+    SERVICE_ACCOUNT_FILE = 'F:/WORKS/MATERIALS/4th_year/LapTrinhMang/docker-cnn/client_secrets.json'
+    SCOPES = ['https://www.googleapis.com/auth/drive.file']
+
+    credentials = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+
+    drive_service = build('drive', 'v3', credentials=credentials)
+
+
+    folder_id = '1aAIkfZS-anf5E6M8uj5nUka5B8Iy4yQn'
+
+    file_metadata = {
+        'name': file_name,
+        'parents': [folder_id]
+    }
+
+    media = MediaFileUpload(file_path, mimetype='application/octet-stream')
+
+    file = drive_service.files().create(
+        body=file_metadata,
+        media_body=media,
+        fields='id'
+    ).execute()
+
+    if 'id' in file:
+        file_id = file['id']
+        file_url = "https://drive.google.com/file/d/" + file_id + "/view"
+        # https://drive.google.com/file/d/15aZezP89eENIpUh5pQ-HjivtWXOj0uY_/view
+
+        return file_url
+    else:
+        return 0

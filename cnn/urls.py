@@ -17,27 +17,8 @@ Including another URLconf
 from django.urls import path, include
 from django.contrib import admin
 from accounts.views import *
-from export.views import *
-from trainModel.views import *
 
 urlpatterns = [
-    path('register/', RegisterAPI.as_view()),
-    path('verify/', VerifyOTP.as_view()),
     path("admin/", admin.site.urls),
-    path('login/', LoginAPI.as_view()),
-    # path('unzip/', UploadAndUnzip.as_view()),
-
-    path('create_project/', CreateProjectAPI.as_view(), name='create-project'),
-    path('user_manage/<int:user_id>/', InforUser.as_view(), name='infor-user'),
-    path('update_project_status/<int:project_id>/',
-         UpdateProjectStatus.as_view(), name='update_project_status'),
-    path('update_project/', UpdateProject.as_view(), name='update_project'),
-    path('me/', Me.as_view(), name='me'),
-    path('admin_manage/all_user/', UserDataManageAPI.as_view(),
-         name='admin_manage/all_user'),
-
-    path("trainModel/", TrainModelView.as_view()),
-    path("auto/", UPLOAD_AUTO.as_view()),
-    # path('detect/', DetectImage.as_view(), name='detect-image'),
-    path("", include("upload.urls")),
+    path("train/", Train_Model.as_view()),
 ]
