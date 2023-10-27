@@ -22,6 +22,8 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from googleapiclient.http import MediaFileUpload
 
+# importing the zipfile module 
+import zipfile
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
@@ -450,7 +452,26 @@ class Train_Model(APIView):
         else:
             return Response({'message': 'Error when unzip file'}, status=status.HTTP_400_BAD_REQUEST)
 
+
+class Unzip(APIView):
+    def get(self, request):
+        file_path = 'F:/WORKS/MATERIALS/4th_year/LapTrinhMang/data_test/bikeCar.zip'
+        extract_path = 'F:/WORKS/MATERIALS/4th_year/LapTrinhMang/data_test/unzip/'
+        
+        try:
+            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                zip_ref.extractall(extract_path)
+            print("Đã giải nén thành công.")
+            return Response({"data": "Đã giải nén thành công."}, status=status.HTTP_201_CREATED)
+        except zipfile.BadZipFile:
+            print("Lỗi: Tệp ZIP không hợp lệ.")
+            return Response({"error": "Lỗi: Tệp ZIP không hợp lệ."}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"Lỗi: {e}")
+            return Response({"error": f"Lỗi: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+    
 def Upload_auto_drive(file_path, file_name):
+    print(">>>DANG UP NE>>>>")
     SERVICE_ACCOUNT_FILE = 'F:/WORKS/MATERIALS/4th_year/LapTrinhMang/docker-cnn/client_secrets.json'
     SCOPES = ['https://www.googleapis.com/auth/drive.file']
 

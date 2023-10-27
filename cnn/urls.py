@@ -21,4 +21,5 @@ from accounts.views import *
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("train/", Train_Model.as_view()),
+    path("unzip/", Unzip.as_view()),
 ]

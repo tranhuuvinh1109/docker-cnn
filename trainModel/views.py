@@ -15,7 +15,8 @@ from time import sleep
 import os
 import threading
 import random
-from upload.views import upload_folder
+from accounts.views import *
+from .uploadAutoDrive import uploadAuto
 from .uploadToFirebase import Firebase
 import shutil
 import scipy
@@ -103,7 +104,8 @@ class TrainModel:
                 'linkDrive': ''
             }
         Firebase.updateProject(user_id_training, project_id_training, data_send)
-        link = upload_folder(file_name, save_name)
+        link = uploadAuto.Upload_auto_drive(file_name, save_name)
+        print("---->> DANG BU?")
         
         folder_container_train = base_data_dir + '/' + save_name
         # remove folder_container_train
