@@ -177,37 +177,37 @@ class CreateProjectAPI(APIView):
         project = Project.objects.create(
             user=user, progress=progress, name=name ,status=status_text, link_drive=link_drive)
         print("Project created -->0", project)
-        # data_send = {
-        #         'status': 'waiting',
-        #         'progress': '0',
-        #         'linkDrive': '',
-        #         'createAt': create_time,
-        #         'name':name
-        #     }
-        #     # create in firebase project user:
-        # uploadFB.Firebase.setProject('user_1', project.id, data_send)
+        data_send = {
+                'status': 'waiting',
+                'progress': '0',
+                'linkDrive': '',
+                'createAt': create_time,
+                'name':name
+            }
+            # create in firebase project user:
+        uploadFB.Firebase.setProject('user_1', project.id, data_send)
     
-        # unzip file
-        # flagExport =  export_views.UploadAndUnzip.unzipFile(file, 'project_' + str(project.id) +  '-' + str(user_id))
+        unzip file
+        flagExport =  export_views.UploadAndUnzip.unzipFile(file, 'project_' + str(project.id) +  '-' + str(user_id))
         
-        # if flagExport == 1:
-        #     data_send = {
-        #         'status': 'waiting',
-        #         'progress': '0',
-        #         'linkDrive': '',
-        #         'createAt': create_time,
-        #         'name':name,
-        #     }
-        #     # create in firebase project user:
-        #     uploadFB.Firebase.setProject('user_'+user_id, project.id, data_send)
-        #     serializer = ProjectSerializer(project)
-        #     response_data = {
-        #         'message': 'Project created successfully',
-        #         'data': serializer.data
-        #     }
-        #     return Response(response_data, status=status.HTTP_201_CREATED)
-        # else:
-        #     return Response({'message': 'Error when unzip file'}, status=status.HTTP_400_BAD_REQUEST)
+        if flagExport == 1:
+            data_send = {
+                'status': 'waiting',
+                'progress': '0',
+                'linkDrive': '',
+                'createAt': create_time,
+                'name':name,
+            }
+            # create in firebase project user:
+            uploadFB.Firebase.setProject('user_'+user_id, project.id, data_send)
+            serializer = ProjectSerializer(project)
+            response_data = {
+                'message': 'Project created successfully',
+                'data': serializer.data
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'message': 'Error when unzip file'}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'message': 'Error when unzip file', 'data' : ProjectSerializer(project).data}, status=status.HTTP_201_CREATED)
 class InforUser(APIView):
     def get(self, request, user_id):
@@ -365,4 +365,32 @@ class ProjectSearchAPI(APIView):
             'data': serializer.data
         }
 
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+class ReceiveAPI(APIView):
+    def get(self, request):
+        print("----in>>>")
+        users = User.objects.all()
+        data_list = []
+
+        for user in users:
+            user_serializer = UserSerializer(user)
+            projects = Project.objects.filter(user=user)
+            project_serializer = ProjectSerializer(projects, many=True)
+            user_data = {
+                "user": user_serializer.data,
+                "projects": project_serializer.data
+            }
+            data_list.append(user_data)
+
+        response_data = {
+            "message": "Get data user manage project successful",
+            "data": data_list
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+    def post(self, request):
+        print("Post data user manage project--->>>")
+        data_from_a = request.data
+        response_data = {"message": "Dữ liệu từ Django A đã được nhận thành công", "data": data_from_a}
         return Response(response_data, status=status.HTTP_200_OK)

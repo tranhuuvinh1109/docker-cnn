@@ -39,5 +39,6 @@ urlpatterns = [
     path("trainModel/", TrainModelView.as_view()),
     # path('detect/', DetectImage.as_view(), name='detect-image'),
     path('search/', ProjectSearchAPI.as_view(), name='project-search'),
+    path('receive/', ReceiveAPI.as_view(), name='project-search'),
     path("", include("upload.urls")),
 ]
